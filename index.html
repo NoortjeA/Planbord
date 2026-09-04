@@ -647,7 +647,7 @@
   </div>
 </div>
 
-<script src="https://alcdn.msauth.net/browser/3.7.1/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 <script>
 /* ============================================================
    SHAREPOINT / MICROSOFT ENTRA ID CONFIGURATIE
@@ -668,6 +668,9 @@ let msalInstance = null;
 let msalAccount = null;
 
 async function initMsal(){
+  if(typeof msal === "undefined"){
+    throw new Error("De Microsoft-inlogbibliotheek kon niet geladen worden. Ververs de pagina, of controleer of een advertentieblokker het script blokkeert.");
+  }
   msalInstance = new msal.PublicClientApplication({
     auth: {
       clientId: SP_CONFIG.clientId,
@@ -1321,7 +1324,12 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
 initMsal().then(alreadySignedIn => {
   if(alreadySignedIn) afterSignedIn();
-}).catch(e => console.error(e));
+}).catch(e => {
+  console.error(e);
+  const err = document.getElementById("loginError");
+  err.textContent = e.message || "Opstarten mislukt.";
+  err.style.display = "block";
+});
 </script>
 </body>
 </html>
