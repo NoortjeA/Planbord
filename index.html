@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planbord (SharePoint)</title>
+<style>
+  :root{
+    --board-bg:#f6f5f0;
+    --ink:#1c2430;
+    --line:#1c2430;
+    --line-soft:#c9cdd6;
+    --paper:#ffffff;
+    --paper-shadow: 0 1px 2px rgba(28,36,48,.12), 0 1px 1px rgba(28,36,48,.08);
+    --blue:#2454c9;
+    --red:#c92424;
+    --yellow:#d8a400;
+    --green:#1f8a45;
+    --orange:#d1650f;
+    --purple:#6b3fa0;
+    --darkblue:#1a2f6b;
+    --muted:#6b7280;
+    --accent:#2454c9;
+    font-family: "Segoe UI", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: var(--board-bg);
+    color: var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 20px;
+    background:var(--paper);
+    border-bottom:2px solid var(--line);
+    flex-wrap:wrap;
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  .topbar h1{
+    font-size:18px;
+    margin:0;
+    letter-spacing:.2px;
+    font-weight:700;
+  }
+  .topbar .sub{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .topbar-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  button.btn{
+    font-family:inherit;
+    font-size:13px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    padding:7px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  button.btn:hover{ background:#eef0f5; }
+  button.btn.primary{
+    background:var(--ink);
+    color:#fff;
+    border-color:var(--ink);
+  }
+  button.btn.primary:hover{ background:#000; }
+  button.btn.small{
+    padding:4px 8px;
+    font-size:12px;
+    font-weight:500;
+  }
+  .status-pill{
+    font-size:11px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .status-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#9aa5b1;
+    transition: background .3s;
+  }
+  .status-dot.live{ background:var(--green); }
+
+  .legend{
+    background:var(--paper);
+    border-bottom:1px solid var(--line-soft);
+    padding:10px 20px;
+    font-size:12px;
+    display:none;
+    gap:22px;
+    flex-wrap:wrap;
+  }
+  .legend.open{ display:flex; }
+  .legend-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .legend-title{ font-weight:700; margin-right:2px; }
+  .legend-item{ display:flex; align-items:center; gap:4px; white-space:nowrap;}
+  .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0;}
+
+  .board-scroll{
+    overflow-x:auto;
+    padding:16px;
+  }
+  .board{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(240px, 1fr));
+    grid-auto-rows: min-content;
+    gap:0;
+    min-width:1000px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    background:var(--paper);
+    box-shadow: var(--paper-shadow);
+  }
+  .week-col{
+    display:contents;
+  }
+  .week-head{
+    padding:10px 12px 8px;
+    border-bottom:3px solid var(--line);
+    background: linear-gradient(#fff,#fbfbf9);
+  }
+  .week-head-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .week-num{
+    font-size:20px;
+    font-weight:800;
+  }
+  .week-range{
+    font-size:11px;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .notices{
+    margin-top:6px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .notice{
+    background:#fff4cf;
+    border:1px solid #e2c976;
+    border-radius:4px;
+    padding:3px 6px;
+    font-size:11.5px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .notice .txt{ white-space:pre-wrap; word-break:break-word; }
+  .notice .del{
+    cursor:pointer;
+    color:#a08228;
+    font-weight:700;
+    font-size:12px;
+    line-height:1;
+  }
+  .notice-input{
+    font-family:inherit;
+    font-size:11px;
+    color:var(--ink);
+    background:none;
+    border:1px dashed #c3c8d1;
+    border-radius:4px;
+    cursor:text;
+    padding:4px 6px;
+    width:100%;
+    font-weight:600;
+    margin-top:4px;
+  }
+  .notice-input::placeholder{ color:var(--accent); font-weight:600; }
+  .notice-input:focus{ outline:none; border-color:var(--accent); border-style:solid; }
+
+  .day-row{
+    border-bottom:1px solid var(--line-soft);
+    background:var(--paper);
+    display:flex;
+    min-height:34px;
+  }
+  .day-row:last-child{ border-bottom:none; }
+  .day-label{
+    width:42px;
+    flex-shrink:0;
+    border-right:2px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding-top:8px;
+    background:#fafaf7;
+  }
+  .day-label .num{ font-size:15px; font-weight:800; }
+  .day-label .abbr{ font-size:10.5px; color:var(--muted); font-weight:700; text-transform:lowercase; }
+
+  .day-cell{
+    flex:1;
+    padding:4px;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    min-width:0;
+  }
+  .day-cell.dragover{ background:#eef4ff; }
+
+  .card{
+    background:#fff;
+    border:1px solid #d8dbe2;
+    border-left:4px solid #9aa5b1;
+    border-radius:3px;
+    padding:3px 6px;
+    font-size:11px;
+    box-shadow:0 1px 1px rgba(0,0,0,.05);
+    cursor:grab;
+    position:relative;
+  }
+  .card:active{ cursor:grabbing; }
+  .card.dragging{ opacity:.4; }
+  .card-line{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    white-space:nowrap;
+  }
+  .card-line .dot{ flex-shrink:0; }
+  .line-text{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    flex:0 1 auto;
+    min-width:0;
+  }
+  .line-text .ordnr{
+    font-weight:800;
+    font-family:"Consolas","SFMono-Regular",Menlo,monospace;
+  }
+  .line-text .rest{ color:#3a4150; font-weight:600; }
+  .tag{
+    font-size:9.5px;
+    font-weight:800;
+    padding:0 4px;
+    border-radius:3px;
+    line-height:1.5;
+    flex-shrink:0;
+  }
+  .tag.shelf{ background:#e9eaed; color:#1c2430; }
+  .tag.fd{ background:#dff3e4; color:var(--green); }
+  .tag.fp{ background:#dbe7fb; color:var(--darkblue); }
+  .tag-dot{
+    width:6px;height:6px;border-radius:50%;
+    display:inline-block;
+    margin-right:3px;
+    vertical-align:middle;
+  }
+  .arrow-urgent{
+    color:var(--red);
+    font-weight:900;
+    font-size:12px;
+    flex-shrink:0;
+  }
+  .deliv-chip{
+    display:flex;
+    align-items:center;
+    gap:3px;
+    color:var(--orange);
+    font-weight:700;
+    font-size:10.5px;
+    flex-shrink:0;
+    border-left:2px solid var(--orange);
+    padding-left:5px;
+  }
+  .card-note{
+    font-size:11px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-del{
+    flex-shrink:0;
+    margin-left:auto;
+    padding-left:4px;
+    font-size:12px;
+    color:#b5bac3;
+    cursor:pointer;
+    font-weight:700;
+    line-height:1;
+  }
+  .card-del:hover{ color:var(--red); }
+
+  .confirm-del{
+    position:absolute;
+    inset:0;
+    background:rgba(255,255,255,.97);
+    border-radius:4px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    font-size:11px;
+    font-weight:700;
+    z-index:5;
+  }
+  .confirm-del-btns{ display:flex; gap:6px; }
+  .confirm-del-btns button{
+    font-family:inherit;
+    font-size:11px;
+    font-weight:700;
+    padding:3px 9px;
+    border-radius:4px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+  }
+  .confirm-del-btns button.yes{ background:var(--red); color:#fff; border-color:var(--red); }
+
+  .add-card-btn{
+    align-self:flex-start;
+    background:none;
+    border:1.5px dashed #c3c8d1;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:700;
+    border-radius:4px;
+    padding:4px 8px;
+    cursor:pointer;
+    margin-top:2px;
+  }
+  .add-card-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,24,32,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background:#fff;
+    border-radius:10px;
+    width:100%;
+    max-width:420px;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:18px 18px 16px;
+    box-shadow:0 12px 40px rgba(0,0,0,.25);
+  }
+  .modal h2{ font-size:16px; margin:0 0 12px; }
+  .type-switch{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .type-switch button{
+    flex:1;
+    font-family:inherit;
+    font-size:12px;
+    font-weight:700;
+    padding:7px 4px;
+    border-radius:6px;
+    border:1.5px solid var(--line-soft);
+    background:#f5f6f8;
+    cursor:pointer;
+    color:var(--muted);
+  }
+  .type-switch button.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+  .field{ margin-bottom:10px; }
+  .field label{
+    display:block;
+    font-size:11.5px;
+    font-weight:700;
+    color:#3a4150;
+    margin-bottom:3px;
+  }
+  .field input[type=text], .field input[type=number], .field select, .field textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:13px;
+    padding:7px 8px;
+    border:1.5px solid var(--line-soft);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:50px; }
+  .row2{ display:flex; gap:8px; }
+  .row2 > .field{ flex:1; }
+  .check-field{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:10px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .check-field input{ width:16px; height:16px; }
+  .subfields{
+    border-left:3px solid #e2e5eb;
+    padding-left:10px;
+    margin:8px 0 4px;
+  }
+  .extra-row{
+    display:flex;
+    gap:5px;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .extra-row select, .extra-row input{
+    font-family:inherit;
+    font-size:12.5px;
+    padding:6px 6px;
+    border:1.5px solid var(--line-soft);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .extra-row select.extra-type{ flex:0 0 62px; }
+  .extra-row input.extra-code{ flex:1 1 auto; min-width:0; }
+  .extra-row select.extra-status{ flex:0 0 92px; }
+  .extra-row .extra-remove{
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    line-height:1;
+    padding:2px 4px;
+  }
+  .extra-row .extra-remove:hover{ color:var(--red); }
+
+  .color-pick{ display:flex; gap:8px; flex-wrap:wrap; }
+  .color-pick label{
+    display:flex; align-items:center; gap:4px;
+    font-size:12px; font-weight:600; cursor:pointer;
+    border:1.5px solid var(--line-soft);
+    padding:4px 8px; border-radius:14px;
+  }
+  .color-pick input{ display:none; }
+  .color-pick label.sel{ border-color:var(--ink); background:#f0f1f4; }
+  .swatch{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .form-error{
+    color:var(--red);
+    font-size:12px;
+    font-weight:700;
+    margin-top:6px;
+  }
+  .modal-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:16px;
+    gap:8px;
+  }
+  .modal-actions .right{ display:flex; gap:8px; }
+
+  @media (max-width:760px){
+    .board{ grid-template-columns: repeat(4, minmax(220px,1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Planbord</h1>
+    <div class="sub">Digitale versie van het whiteboard — gekoppeld aan SharePoint, inloggen met Microsoft</div>
+  </div>
+  <div class="topbar-controls">
+    <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
+    <button class="btn small" id="legendBtn">Legenda</button>
+    <button class="btn" id="prevWeekBtn">◀ Vorige</button>
+    <button class="btn primary" id="advanceBtn">Bord opschuiven ▶</button>
+  </div>
+</div>
+
+<div class="legend" id="legendPanel">
+  <div class="legend-group">
+    <span class="legend-title">Orderstatus:</span>
+    <span class="legend-item"><span class="dot" style="background:var(--blue)"></span>besteld</span>
+    <span class="legend-item"><span class="dot" style="background:var(--red)"></span>op voorraad</span>
+    <span class="legend-item"><span class="dot" style="background:var(--yellow)"></span>magazijn gestart</span>
+    <span class="legend-item"><span class="dot" style="background:var(--green)"></span>gereed</span>
+  </div>
+  <div class="legend-group">
+    <span class="legend-title">Bezorging:</span>
+    <span class="legend-item" style="color:var(--orange);font-weight:700;">— lijn = eigen bezorging</span>
+    <span class="legend-item"><span class="dot" style="background:var(--red)"></span>gepland, nog niet gebeld</span>
+    <span class="legend-item"><span class="dot" style="background:var(--yellow)"></span>gevraagd, geen reactie</span>
+    <span class="legend-item"><span class="dot" style="background:var(--green)"></span>bevestigd</span>
+    <span class="legend-item" style="color:var(--red);font-weight:800;">↑ spoed, niet wachten op leverdatum</span>
+  </div>
+  <div class="legend-group">
+    <span class="legend-title">Overig:</span>
+    <span class="legend-item">zwart getal = aantal kasten (eigen statusdot)</span>
+    <span class="legend-item" style="color:var(--green);font-weight:700;">FD</span>
+    <span class="legend-item" style="color:var(--darkblue);font-weight:700;">FP</span>
+    <span class="legend-item">— beide kunnen meerdere keren voorkomen, elk met eigen statusdot</span>
+    <span class="legend-item" style="color:var(--blue);font-weight:700;">blauw bordje = levering leverancier / ophalen</span>
+  </div>
+</div>
+
+<div class="board-scroll">
+  <div class="board" id="board"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Nieuw bordje</h2>
+    <div class="type-switch" id="typeSwitch">
+      <button data-type="order" class="active">Order</button>
+      <button data-type="supplier">Levering</button>
+      <button data-type="note">Notitie</button>
+    </div>
+
+    <div id="fieldsOrder">
+      <div class="field">
+        <label>Status</label>
+        <select id="f_status">
+          <option value="blue">Besteld (blauw)</option>
+          <option value="red">Op voorraad (rood)</option>
+          <option value="yellow">Magazijn gestart (geel)</option>
+          <option value="green">Gereed (groen)</option>
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Ordernummer</label>
+          <input type="text" id="f_ordernr" placeholder="5275">
+        </div>
+        <div class="field">
+          <label>Klant</label>
+          <input type="text" id="f_klant" placeholder="BIW">
+        </div>
+      </div>
+      <div class="field">
+        <label>Kasten (aantal)</label>
+        <div class="row2">
+          <input type="number" id="f_kasten_aantal" placeholder="10">
+          <select id="f_kasten_status">
+            <option value="">Geen status</option>
+            <option value="blue">Besteld (blauw)</option>
+            <option value="red">Op voorraad (rood)</option>
+            <option value="yellow">Magazijn gestart (geel)</option>
+            <option value="green">Gereed (groen)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Extra's (FD / FP)</label>
+        <div id="extrasList"></div>
+        <button type="button" class="add-notice" id="addExtraBtn">+ extra toevoegen</button>
+      </div>
+      <label class="check-field"><input type="checkbox" id="f_spoed"> Spoed (rode pijl — niet wachten op leverdatum)</label>
+      <label class="check-field"><input type="checkbox" id="f_eigenbezorging"> Eigen bezorging</label>
+      <div class="subfields" id="deliverySubfields" style="display:none;">
+        <div class="field">
+          <label>Chauffeur</label>
+          <input type="text" id="f_chauffeur" placeholder="Naam">
+        </div>
+        <div class="field">
+          <label>Bezorgstatus</label>
+          <select id="f_bezorgstatus">
+            <option value="red">Gepland, nog niet gebeld</option>
+            <option value="yellow">Gevraagd, geen reactie</option>
+            <option value="green">Bevestigd</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="fieldsSupplier" style="display:none;">
+      <div class="field">
+        <label>Leverancier</label>
+        <input type="text" id="s_naam" placeholder="247 / Brink / GTO">
+      </div>
+      <div class="field">
+        <label>Code / aantal</label>
+        <input type="text" id="s_code" placeholder="27/20 of 40/0">
+      </div>
+      <label class="check-field"><input type="checkbox" id="s_ophalen"> Wij halen op (i.p.v. levering)</label>
+    </div>
+
+    <div id="fieldsNote" style="display:none;">
+      <div class="field">
+        <label>Tekst</label>
+        <textarea id="n_tekst" placeholder="Peter jarig"></textarea>
+      </div>
+      <div class="field">
+        <label>Kleur</label>
+        <div class="color-pick" id="noteColorPick">
+          <label class="sel"><input type="radio" name="notecolor" value="#fff4cf" checked><span class="swatch" style="background:#fff4cf;border:1px solid #d8c574"></span>Geel</label>
+          <label><input type="radio" name="notecolor" value="#f6dbe8"><span class="swatch" style="background:#f6dbe8;border:1px solid #dba6c2"></span>Roze</label>
+          <label><input type="radio" name="notecolor" value="#dbe7fb"><span class="swatch" style="background:#dbe7fb;border:1px solid #a9c3ec"></span>Blauw</label>
+          <label><input type="radio" name="notecolor" value="#dff3e4"><span class="swatch" style="background:#dff3e4;border:1px solid #a6d9b6"></span>Groen</label>
+          <label><input type="radio" name="notecolor" value="#ffffff"><span class="swatch" style="background:#ffffff;border:1px solid #ccc"></span>Wit</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-error" id="formError" style="display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn" id="deleteCardBtn" style="display:none;color:var(--red);border-color:var(--red);">Verwijderen</button>
+      <div class="right">
+        <button class="btn" id="cancelBtn">Annuleren</button>
+        <button class="btn primary" id="saveCardBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://alcdn.msauth.net/browser/3.7.1/js/msal-browser.min.js"></script>
+<script>
+/* ============================================================
+   SHAREPOINT / MICROSOFT ENTRA ID CONFIGURATIE
+   Vul deze vier waarden in voordat je dit bestand host.
+   Zie de losse setup-uitleg voor waar je ze vandaan haalt.
+   ============================================================ */
+const SP_CONFIG = {
+  clientId: "VUL-HIER-JE-APP-CLIENT-ID-IN",     // Entra ID app-registratie: Application (client) ID
+  tenantId: "VUL-HIER-JE-TENANT-ID-IN",         // Entra ID: Directory (tenant) ID
+  siteId:   "VUL-HIER-JE-SHAREPOINT-SITE-ID-IN",// SharePoint site-id (via Graph Explorer)
+  listId:   "VUL-HIER-JE-SHAREPOINT-LIST-ID-IN" // SharePoint list-id (via Graph Explorer)
+};
+const GRAPH_SCOPES = ["Sites.ReadWrite.All"];
+const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
+const ITEM_KEY = "planbord-data-v1";
+let spItemId = null;
+let msalInstance = null;
+let msalAccount = null;
+
+async function ensureSignedIn(){
+  msalInstance = new msal.PublicClientApplication({
+    auth: {
+      clientId: SP_CONFIG.clientId,
+      authority: "https://login.microsoftonline.com/" + SP_CONFIG.tenantId,
+      redirectUri: window.location.origin + window.location.pathname
+    },
+    cache: { cacheLocation: "sessionStorage" }
+  });
+  await msalInstance.initialize();
+  const existing = msalInstance.getAllAccounts();
+  if(existing.length > 0){
+    msalAccount = existing[0];
+  } else {
+    const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
+    msalAccount = result.account;
+  }
+}
+
+async function getGraphToken(){
+  const req = { scopes: GRAPH_SCOPES, account: msalAccount };
+  try{
+    const res = await msalInstance.acquireTokenSilent(req);
+    return res.accessToken;
+  }catch(e){
+    const res = await msalInstance.acquireTokenPopup(req);
+    return res.accessToken;
+  }
+}
+
+async function graphGetItem(){
+  const token = await getGraphToken();
+  const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields&$filter=fields/Title eq '${ITEM_KEY}'`;
+  const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
+  if(!res.ok) throw new Error("Graph GET faalde: " + res.status);
+  return res.json();
+}
+
+async function graphCreateItem(json){
+  const token = await getGraphToken();
+  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items`, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: { Title: ITEM_KEY, Data: json } })
+  });
+  if(!res.ok) throw new Error("Graph POST faalde: " + res.status);
+  const created = await res.json();
+  spItemId = created.id;
+}
+
+async function graphUpdateItem(json){
+  const token = await getGraphToken();
+  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items/${spItemId}/fields`, {
+    method: "PATCH",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+    body: JSON.stringify({ Data: json })
+  });
+  if(!res.ok) throw new Error("Graph PATCH faalde: " + res.status);
+}
+</script>
+<script>
+const DAY_ABBR = ["ma","di","wo","do","vr"];
+let state = null;          // in-memory board data
+let lastSavedJSON = "";    // to detect remote changes on poll
+let currentType = "order";
+let editingCardId = null;
+let editingDayKey = null;
+let dragCardId = null;
+let dragFromDay = null;
+
+function isoWeekData(d){
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - dayNum + 3);
+  const firstThursday = new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const fdn = (firstThursday.getUTCDay()+6)%7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate()-fdn+3);
+  const week = 1 + Math.round((d-firstThursday)/(7*24*3600*1000));
+  return { isoYear: d.getUTCFullYear(), isoWeek: week };
+}
+function mondayOfISOWeek(isoYear, isoWeek){
+  const jan4 = new Date(Date.UTC(isoYear,0,4));
+  const jd = (jan4.getUTCDay()+6)%7;
+  const week1Mon = new Date(jan4); week1Mon.setUTCDate(jan4.getUTCDate()-jd);
+  const mon = new Date(week1Mon); mon.setUTCDate(week1Mon.getUTCDate() + (isoWeek-1)*7);
+  return mon;
+}
+function fmtDateKey(d){
+  return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0");
+}
+function weekKey(isoYear, isoWeek){ return isoYear+"-"+isoWeek; }
+
+function defaultState(){
+  const today = isoWeekData(new Date());
+  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek, notices:{}, cards:{} };
+}
+
+async function loadState(){
+  try{
+    const data = await graphGetItem();
+    if(data.value && data.value.length > 0){
+      spItemId = data.value[0].id;
+      const json = data.value[0].fields.Data || "{}";
+      state = JSON.parse(json);
+      if(!state.anchorYear) state = defaultState();
+      lastSavedJSON = json;
+    } else {
+      state = defaultState();
+      await persist();
+    }
+  }catch(e){
+    console.error(e);
+    state = defaultState();
+    setLive(false);
+  }
+  render();
+}
+
+async function persist(){
+  const json = JSON.stringify(state);
+  lastSavedJSON = json;
+  try{
+    if(spItemId){
+      await graphUpdateItem(json);
+    } else {
+      await graphCreateItem(json);
+    }
+    setLive(true);
+  }catch(e){
+    console.error(e);
+    setLive(false);
+  }
+}
+
+async function pollRemote(){
+  try{
+    const data = await graphGetItem();
+    if(data.value && data.value.length > 0){
+      spItemId = data.value[0].id;
+      const json = data.value[0].fields.Data || "{}";
+      if(json !== lastSavedJSON){
+        state = JSON.parse(json);
+        lastSavedJSON = json;
+        render();
+      }
+    }
+    setLive(true);
+  }catch(e){
+    setLive(false);
+  }
+}
+setInterval(pollRemote, 4000);
+
+function setLive(ok){
+  document.getElementById("liveDot").classList.toggle("live", ok);
+  const who = msalAccount ? (msalAccount.username || msalAccount.name) : "";
+  document.getElementById("liveTxt").textContent = ok
+    ? (who ? "live gedeeld — " + who : "live gedeeld")
+    : "geen verbinding";
+}
+
+function getWeekColumns(){
+  const cols = [];
+  for(let i=0;i<4;i++){
+    const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+    mon.setUTCDate(mon.getUTCDate() + i*7);
+    const wd = isoWeekData(mon);
+    cols.push({ isoYear: wd.isoYear, isoWeek: wd.isoWeek, monday: mon, offset: i });
+  }
+  return cols;
+}
+
+function render(){
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  const cols = getWeekColumns();
+  cols.forEach(col => board.appendChild(renderWeekCol(col)));
+}
+
+function renderWeekCol(col){
+  const wk = weekKey(col.isoYear, col.isoWeek);
+  const wrap = document.createElement("div");
+  wrap.className = "week-col";
+
+  const head = document.createElement("div");
+  head.className = "week-head";
+  head.style.gridColumn = String(col.offset + 1);
+  head.style.gridRow = "1";
+  if(col.offset < 3) head.style.borderRight = "2px solid var(--line)";
+  const endDate = new Date(col.monday); endDate.setUTCDate(endDate.getUTCDate()+4);
+  head.innerHTML = `
+    <div class="week-head-top">
+      <div>
+        <div class="week-num">${col.offset===0 ? "Week "+col.isoWeek : "Week "+col.isoWeek}</div>
+        <div class="week-range">${fmtDMY(col.monday)} – ${fmtDMY(endDate)}</div>
+      </div>
+    </div>
+    <div class="notices" id="notices-${wk}"></div>
+    <input type="text" class="notice-input" data-wk="${wk}" placeholder="+ mededeling (vakantie / gesloten), Enter om toe te voegen">
+  `;
+  wrap.appendChild(head);
+
+  const noticesWrap = head.querySelector(".notices");
+  (state.notices[wk] || []).forEach((txt, idx) => {
+    const n = document.createElement("div");
+    n.className = "notice";
+    n.innerHTML = `<span class="txt"></span><span class="del">×</span>`;
+    n.querySelector(".txt").textContent = txt;
+    n.querySelector(".del").addEventListener("click", () => {
+      state.notices[wk].splice(idx,1);
+      persist(); render();
+    });
+    noticesWrap.appendChild(n);
+  });
+  const noticeInput = head.querySelector(".notice-input");
+  noticeInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+      const txt = noticeInput.value.trim();
+      if(txt){
+        if(!state.notices[wk]) state.notices[wk] = [];
+        state.notices[wk].push(txt);
+        persist(); render();
+      }
+    }
+  });
+
+  for(let d=0; d<5; d++){
+    const date = new Date(col.monday); date.setUTCDate(date.getUTCDate()+d);
+    const dayKey = fmtDateKey(date);
+    const row = document.createElement("div");
+    row.className = "day-row";
+    row.style.gridColumn = String(col.offset + 1);
+    row.style.gridRow = String(d + 2);
+    if(col.offset < 3) row.style.borderRight = "2px solid var(--line)";
+    row.innerHTML = `
+      <div class="day-label">
+        <div class="num">${date.getUTCDate()}</div>
+        <div class="abbr">${DAY_ABBR[d]}</div>
+      </div>
+      <div class="day-cell" data-daykey="${dayKey}"></div>
+    `;
+    const cell = row.querySelector(".day-cell");
+    (state.cards[dayKey] || []).forEach(card => cell.appendChild(renderCard(card, dayKey)));
+    const addBtn = document.createElement("button");
+    addBtn.className = "add-card-btn";
+    addBtn.textContent = "+ bordje";
+    addBtn.addEventListener("click", () => openModal(dayKey, null));
+    cell.appendChild(addBtn);
+
+    cell.addEventListener("dragover", e => { e.preventDefault(); cell.classList.add("dragover"); });
+    cell.addEventListener("dragleave", () => cell.classList.remove("dragover"));
+    cell.addEventListener("drop", e => {
+      e.preventDefault();
+      cell.classList.remove("dragover");
+      if(!dragCardId || !dragFromDay) return;
+      const fromArr = state.cards[dragFromDay] || [];
+      const idx = fromArr.findIndex(c => c.id === dragCardId);
+      if(idx === -1) return;
+      const [moved] = fromArr.splice(idx,1);
+      if(!state.cards[dayKey]) state.cards[dayKey] = [];
+      state.cards[dayKey].push(moved);
+      dragCardId = null; dragFromDay = null;
+      persist(); render();
+    });
+
+    wrap.appendChild(row);
+  }
+
+  return wrap;
+}
+
+function fmtDMY(d){
+  return String(d.getUTCDate()).padStart(2,"0")+"/"+String(d.getUTCMonth()+1).padStart(2,"0");
+}
+
+const STATUS_COLOR = { blue:"var(--blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--green)" };
+
+function renderCard(card, dayKey){
+  const el = document.createElement("div");
+  el.className = "card";
+  el.draggable = true;
+  el.addEventListener("dragstart", () => {
+    dragCardId = card.id; dragFromDay = dayKey;
+    el.classList.add("dragging");
+  });
+  el.addEventListener("dragend", () => el.classList.remove("dragging"));
+  el.addEventListener("click", (e) => {
+    if(e.target.classList.contains("card-del")) return;
+    openModal(dayKey, card);
+  });
+
+  const del = document.createElement("span");
+  del.className = "card-del";
+  del.textContent = "×";
+  del.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if(el.querySelector(".confirm-del")) return;
+    const conf = document.createElement("div");
+    conf.className = "confirm-del";
+    conf.innerHTML = `<span>Verwijderen?</span><div class="confirm-del-btns"><button type="button" class="yes">Ja</button><button type="button" class="no">Nee</button></div>`;
+    conf.addEventListener("click", ev => ev.stopPropagation());
+    conf.querySelector(".yes").addEventListener("click", () => {
+      state.cards[dayKey] = (state.cards[dayKey]||[]).filter(c => c.id !== card.id);
+      persist(); render();
+    });
+    conf.querySelector(".no").addEventListener("click", () => conf.remove());
+    el.appendChild(conf);
+  });
+
+  if(card.type === "order"){
+    el.style.borderLeftColor = STATUS_COLOR[card.status] || "#9aa5b1";
+    el.title = [card.ordernr, card.klant].filter(Boolean).join(" · ");
+    const line = document.createElement("div");
+    line.className = "card-line";
+
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#9aa5b1'};width:8px;height:8px;border-radius:50%;display:inline-block;`;
+    line.appendChild(dot);
+
+    const text = document.createElement("span");
+    text.className = "line-text";
+    const ordSpan = document.createElement("span");
+    ordSpan.className = "ordnr";
+    ordSpan.textContent = card.ordernr || "(geen nr.)";
+    text.appendChild(ordSpan);
+    if(card.klant){
+      const restSpan = document.createElement("span");
+      restSpan.className = "rest";
+      restSpan.textContent = " " + card.klant;
+      text.appendChild(restSpan);
+    }
+    line.appendChild(text);
+
+    if(card.kastenAantal){
+      const t = document.createElement("span");
+      t.className = "tag shelf";
+      if(card.kastenStatus){
+        const kd = document.createElement("span");
+        kd.className = "tag-dot";
+        kd.style.background = STATUS_COLOR[card.kastenStatus] || "#9aa5b1";
+        t.appendChild(kd);
+      }
+      t.appendChild(document.createTextNode(card.kastenAantal));
+      line.appendChild(t);
+    }
+    (card.extras || []).forEach(ex => {
+      const t = document.createElement("span");
+      t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
+      const ed = document.createElement("span");
+      ed.className = "tag-dot";
+      ed.style.background = STATUS_COLOR[ex.status] || "#9aa5b1";
+      t.appendChild(ed);
+      t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
+      line.appendChild(t);
+    });
+    if(card.spoed){
+      const arrow = document.createElement("span");
+      arrow.className = "arrow-urgent";
+      arrow.textContent = "↑";
+      arrow.title = "Spoed";
+      line.appendChild(arrow);
+    }
+    if(card.eigenbezorging){
+      const chip = document.createElement("span");
+      chip.className = "deliv-chip";
+      const cdot = document.createElement("span");
+      cdot.style.cssText = `background:${card.bezorgstatus==='green'?'var(--green)':card.bezorgstatus==='yellow'?'var(--yellow)':'var(--red)'};width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;`;
+      chip.appendChild(cdot);
+      const cname = document.createElement("span");
+      cname.textContent = card.chauffeur || "chauffeur?";
+      chip.appendChild(cname);
+      line.appendChild(chip);
+    }
+    line.appendChild(del);
+    el.appendChild(line);
+  } else if(card.type === "supplier"){
+    el.style.borderLeftColor = "var(--blue)";
+    el.title = card.naam || "";
+    const line = document.createElement("div");
+    line.className = "card-line";
+    const text = document.createElement("span");
+    text.className = "line-text";
+    text.style.color = "var(--blue)";
+    text.style.fontWeight = "700";
+    text.textContent = card.naam + (card.code ? ": " + card.code : "");
+    line.appendChild(text);
+    if(card.ophalen){
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.style.background = "#dbe7fb";
+      t.style.color = "var(--blue)";
+      t.textContent = "ophalen";
+      line.appendChild(t);
+    }
+    line.appendChild(del);
+    el.appendChild(line);
+  } else if(card.type === "note"){
+    el.style.background = card.color || "#fff4cf";
+    el.style.borderLeftColor = "#c9b866";
+    el.title = card.text || "";
+    const line = document.createElement("div");
+    line.className = "card-line";
+    const txt = document.createElement("div");
+    txt.className = "card-note";
+    txt.style.flex = "1 1 auto";
+    txt.style.minWidth = "0";
+    txt.textContent = card.text || "";
+    line.appendChild(txt);
+    line.appendChild(del);
+    el.appendChild(line);
+  }
+
+  return el;
+}
+
+/* ---------- modal ---------- */
+const overlay = document.getElementById("overlay");
+const typeSwitch = document.getElementById("typeSwitch");
+const fieldsOrder = document.getElementById("fieldsOrder");
+const fieldsSupplier = document.getElementById("fieldsSupplier");
+const fieldsNote = document.getElementById("fieldsNote");
+const deliverySubfields = document.getElementById("deliverySubfields");
+
+typeSwitch.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-type]");
+  if(!btn) return;
+  setType(btn.dataset.type);
+});
+function setType(t){
+  currentType = t;
+  [...typeSwitch.children].forEach(b => b.classList.toggle("active", b.dataset.type === t));
+  fieldsOrder.style.display = t === "order" ? "" : "none";
+  fieldsSupplier.style.display = t === "supplier" ? "" : "none";
+  fieldsNote.style.display = t === "note" ? "" : "none";
+}
+document.getElementById("f_eigenbezorging").addEventListener("change", (e) => {
+  deliverySubfields.style.display = e.target.checked ? "" : "none";
+});
+let currentExtras = [];
+function renderExtrasList(){
+  const wrap = document.getElementById("extrasList");
+  wrap.innerHTML = "";
+  currentExtras.forEach((ex, idx) => {
+    const row = document.createElement("div");
+    row.className = "extra-row";
+    row.innerHTML = `
+      <select class="extra-type">
+        <option value="fd">FD</option>
+        <option value="fp">FP</option>
+      </select>
+      <input type="text" class="extra-code" placeholder="1">
+      <select class="extra-status">
+        <option value="blue">blauw</option>
+        <option value="red">rood</option>
+        <option value="yellow">geel</option>
+        <option value="green">groen</option>
+      </select>
+      <button type="button" class="extra-remove">×</button>
+    `;
+    row.querySelector(".extra-type").value = ex.type;
+    row.querySelector(".extra-code").value = ex.code;
+    row.querySelector(".extra-status").value = ex.status;
+    row.querySelector(".extra-type").addEventListener("change", e => currentExtras[idx].type = e.target.value);
+    row.querySelector(".extra-code").addEventListener("input", e => currentExtras[idx].code = e.target.value);
+    row.querySelector(".extra-status").addEventListener("change", e => currentExtras[idx].status = e.target.value);
+    row.querySelector(".extra-remove").addEventListener("click", () => {
+      currentExtras.splice(idx,1);
+      renderExtrasList();
+    });
+    wrap.appendChild(row);
+  });
+}
+document.getElementById("addExtraBtn").addEventListener("click", () => {
+  currentExtras.push({ type:"fd", code:"", status:"blue" });
+  renderExtrasList();
+});
+document.querySelectorAll("#noteColorPick label").forEach(l => {
+  l.addEventListener("click", () => {
+    document.querySelectorAll("#noteColorPick label").forEach(x=>x.classList.remove("sel"));
+    l.classList.add("sel");
+  });
+});
+
+function openModal(dayKey, card){
+  editingDayKey = dayKey;
+  editingCardId = card ? card.id : null;
+  document.getElementById("modalTitle").textContent = card ? "Bordje bewerken" : "Nieuw bordje";
+  document.getElementById("deleteCardBtn").style.display = card ? "" : "none";
+
+  // reset fields
+  document.getElementById("f_status").value = "blue";
+  document.getElementById("f_ordernr").value = "";
+  document.getElementById("f_klant").value = "";
+  document.getElementById("f_kasten_aantal").value = "";
+  document.getElementById("f_kasten_status").value = "";
+  currentExtras = [];
+  renderExtrasList();
+  document.getElementById("f_spoed").checked = false;
+  document.getElementById("f_eigenbezorging").checked = false;
+  document.getElementById("f_chauffeur").value = "";
+  document.getElementById("f_bezorgstatus").value = "red";
+  deliverySubfields.style.display = "none";
+  document.getElementById("s_naam").value = "";
+  document.getElementById("s_code").value = "";
+  document.getElementById("s_ophalen").checked = false;
+  document.getElementById("n_tekst").value = "";
+  document.querySelectorAll("#noteColorPick label").forEach((x,i)=>x.classList.toggle("sel", i===0));
+  document.querySelector('#noteColorPick input[value="#fff4cf"]').checked = true;
+
+  let type = "order";
+  if(card){
+    type = card.type;
+    if(card.type === "order"){
+      document.getElementById("f_status").value = card.status || "blue";
+      document.getElementById("f_ordernr").value = card.ordernr || "";
+      document.getElementById("f_klant").value = card.klant || "";
+      document.getElementById("f_kasten_aantal").value = card.kastenAantal || "";
+      document.getElementById("f_kasten_status").value = card.kastenStatus || "";
+      currentExtras = (card.extras || []).map(ex => ({...ex}));
+      renderExtrasList();
+      document.getElementById("f_spoed").checked = !!card.spoed;
+      document.getElementById("f_eigenbezorging").checked = !!card.eigenbezorging;
+      deliverySubfields.style.display = card.eigenbezorging ? "" : "none";
+      document.getElementById("f_chauffeur").value = card.chauffeur || "";
+      document.getElementById("f_bezorgstatus").value = card.bezorgstatus || "red";
+    } else if(card.type === "supplier"){
+      document.getElementById("s_naam").value = card.naam || "";
+      document.getElementById("s_code").value = card.code || "";
+      document.getElementById("s_ophalen").checked = !!card.ophalen;
+    } else if(card.type === "note"){
+      document.getElementById("n_tekst").value = card.text || "";
+      const wantColor = card.color || "#fff4cf";
+      document.querySelectorAll("#noteColorPick label").forEach(l => {
+        const inp = l.querySelector("input");
+        inp.checked = inp.value === wantColor;
+        l.classList.toggle("sel", inp.value === wantColor);
+      });
+    }
+  }
+  setType(type);
+  document.getElementById("formError").style.display = "none";
+  overlay.classList.add("open");
+}
+function showFormError(msg){
+  const el = document.getElementById("formError");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+function closeModal(){
+  overlay.classList.remove("open");
+  editingDayKey = null;
+  editingCardId = null;
+}
+document.getElementById("cancelBtn").addEventListener("click", closeModal);
+overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
+
+document.getElementById("deleteCardBtn").addEventListener("click", () => {
+  if(!editingCardId || !editingDayKey) return;
+  state.cards[editingDayKey] = (state.cards[editingDayKey]||[]).filter(c => c.id !== editingCardId);
+  persist(); render(); closeModal();
+});
+
+document.getElementById("saveCardBtn").addEventListener("click", () => {
+  if(!editingDayKey) return;
+  let card = { id: editingCardId || ("c"+Date.now()+Math.random().toString(36).slice(2,7)), type: currentType };
+
+  if(currentType === "order"){
+    card.status = document.getElementById("f_status").value;
+    card.ordernr = document.getElementById("f_ordernr").value.trim();
+    card.klant = document.getElementById("f_klant").value.trim();
+    card.kastenAantal = document.getElementById("f_kasten_aantal").value.trim();
+    card.kastenStatus = document.getElementById("f_kasten_status").value;
+    card.extras = currentExtras
+      .map(ex => ({ type: ex.type, code: (ex.code||"").trim(), status: ex.status }))
+      .filter(ex => ex.code);
+    card.spoed = document.getElementById("f_spoed").checked;
+    card.eigenbezorging = document.getElementById("f_eigenbezorging").checked;
+    card.chauffeur = document.getElementById("f_chauffeur").value.trim();
+    card.bezorgstatus = document.getElementById("f_bezorgstatus").value;
+    if(!card.ordernr && !card.klant){ showFormError("Vul minstens een ordernummer of klant in."); return; }
+  } else if(currentType === "supplier"){
+    card.naam = document.getElementById("s_naam").value.trim();
+    card.code = document.getElementById("s_code").value.trim();
+    card.ophalen = document.getElementById("s_ophalen").checked;
+    if(!card.naam){ showFormError("Vul een leverancier in."); return; }
+  } else if(currentType === "note"){
+    card.text = document.getElementById("n_tekst").value.trim();
+    card.color = document.querySelector('#noteColorPick input:checked').value;
+    if(!card.text){ showFormError("Vul een tekst in."); return; }
+  }
+
+  if(!state.cards[editingDayKey]) state.cards[editingDayKey] = [];
+  if(editingCardId){
+    const idx = state.cards[editingDayKey].findIndex(c => c.id === editingCardId);
+    if(idx !== -1) state.cards[editingDayKey][idx] = card;
+    else state.cards[editingDayKey].push(card);
+  } else {
+    state.cards[editingDayKey].push(card);
+  }
+  persist(); render(); closeModal();
+});
+
+/* ---------- top controls ---------- */
+document.getElementById("legendBtn").addEventListener("click", () => {
+  document.getElementById("legendPanel").classList.toggle("open");
+});
+document.getElementById("advanceBtn").addEventListener("click", () => {
+  const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+  mon.setUTCDate(mon.getUTCDate()+7);
+  const wd = isoWeekData(mon);
+  state.anchorYear = wd.isoYear; state.anchorWeek = wd.isoWeek;
+  persist(); render();
+});
+document.getElementById("prevWeekBtn").addEventListener("click", () => {
+  const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+  mon.setUTCDate(mon.getUTCDate()-7);
+  const wd = isoWeekData(mon);
+  state.anchorYear = wd.isoYear; state.anchorWeek = wd.isoWeek;
+  persist(); render();
+});
+
+ensureSignedIn().then(loadState).catch(e => {
+  console.error(e);
+  document.getElementById("liveTxt").textContent = "inloggen mislukt";
+});
+</script>
+</body>
+</html>
