@@ -706,10 +706,11 @@ async function getGraphToken(){
 
 async function graphGetItem(){
   const token = await getGraphToken();
-  const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields&$filter=fields/Title eq '${ITEM_KEY}'`;
+  const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields`;
   const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   if(!res.ok) throw new Error("Graph GET faalde: " + res.status);
-  return res.json();
+  const data = await res.json();
+  return (data.value || []).find(it => it.fields && it.fields.Title === ITEM_KEY) || null;
 }
 
 async function graphCreateItem(json){
@@ -773,10 +774,10 @@ function defaultState(){
 
 async function loadState(){
   try{
-    const data = await graphGetItem();
-    if(data.value && data.value.length > 0){
-      spItemId = data.value[0].id;
-      const json = data.value[0].fields.Data || "{}";
+    const item = await graphGetItem();
+    if(item){
+      spItemId = item.id;
+      const json = item.fields.Data || "{}";
       state = JSON.parse(json);
       if(!state.anchorYear) state = defaultState();
       lastSavedJSON = json;
@@ -784,6 +785,7 @@ async function loadState(){
       state = defaultState();
       await persist();
     }
+    setLive(true);
   }catch(e){
     console.error(e);
     state = defaultState();
@@ -810,10 +812,10 @@ async function persist(){
 
 async function pollRemote(){
   try{
-    const data = await graphGetItem();
-    if(data.value && data.value.length > 0){
-      spItemId = data.value[0].id;
-      const json = data.value[0].fields.Data || "{}";
+    const item = await graphGetItem();
+    if(item){
+      spItemId = item.id;
+      const json = item.fields.Data || "{}";
       if(json !== lastSavedJSON){
         state = JSON.parse(json);
         lastSavedJSON = json;
