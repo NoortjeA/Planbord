@@ -528,7 +528,17 @@
   </div>
 </div>
 
+<div class="overlay open" id="loginOverlay" style="background:rgba(20,24,32,.55);">
+  <div class="modal" style="max-width:340px; text-align:center; padding:28px 24px;">
+    <h2 style="margin-bottom:6px;">Planbord</h2>
+    <p style="font-size:13px; color:var(--muted); margin:0 0 18px;">Log in met je Microsoft-account om het bord te zien.</p>
+    <button class="btn primary" id="loginBtn" style="width:100%;">Inloggen met Microsoft</button>
+    <p id="loginError" style="color:var(--red); font-size:12px; font-weight:700; margin-top:12px; display:none;"></p>
+  </div>
+</div>
+
 <div class="board-scroll">
+
   <div class="board" id="board"></div>
 </div>
 
@@ -645,10 +655,10 @@
    Zie de losse setup-uitleg voor waar je ze vandaan haalt.
    ============================================================ */
 const SP_CONFIG = {
-  clientId: "75a374a6-4a2d-4c55-87c1-bc85710e69c9",     // Entra ID app-registratie: Application (client) ID
-  tenantId: "e4d51aa0-7da5-4035-afbd-87881515b1b6",         // Entra ID: Directory (tenant) ID
-  siteId:   "tomlock.sharepoint.com,8b024d6a-5001-4acd-b0e7-2db7b4b560cb,bcc7504f-e522-401c-9f69-1aec5fee7552",// SharePoint site-id (via Graph Explorer)
-  listId:   "495e22c8-5e3e-4925-a8ac-db5c987f9c61" // SharePoint list-id (via Graph Explorer)
+  clientId: "75a374a6-4a2d-4c55-87c1-bc85710e69c9",
+  tenantId: "e4d51aa0-7da5-4035-afbd-87881515b1b6",
+  siteId:   "tomlock.sharepoint.com,8b024d6a-5001-4acd-b0e7-2db7b4b560cb,bcc7504f-e522-401c-9f69-1aec5fee7552",
+  listId:   "495e22c8-5e3e-4925-a8ac-db5c987f9c61"
 };
 const GRAPH_SCOPES = ["Sites.ReadWrite.All"];
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
@@ -657,7 +667,7 @@ let spItemId = null;
 let msalInstance = null;
 let msalAccount = null;
 
-async function ensureSignedIn(){
+async function initMsal(){
   msalInstance = new msal.PublicClientApplication({
     auth: {
       clientId: SP_CONFIG.clientId,
@@ -670,10 +680,14 @@ async function ensureSignedIn(){
   const existing = msalInstance.getAllAccounts();
   if(existing.length > 0){
     msalAccount = existing[0];
-  } else {
-    const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
-    msalAccount = result.account;
+    return true;
   }
+  return false;
+}
+
+async function loginWithPopup(){
+  const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
+  msalAccount = result.account;
 }
 
 async function getGraphToken(){
@@ -808,7 +822,9 @@ async function pollRemote(){
     setLive(false);
   }
 }
-setInterval(pollRemote, 4000);
+function startPolling(){
+  setInterval(pollRemote, 4000);
+}
 
 function setLive(ok){
   document.getElementById("liveDot").classList.toggle("live", ok);
@@ -1279,10 +1295,33 @@ document.getElementById("prevWeekBtn").addEventListener("click", () => {
   persist(); render();
 });
 
-ensureSignedIn().then(loadState).catch(e => {
-  console.error(e);
-  document.getElementById("liveTxt").textContent = "inloggen mislukt";
+async function afterSignedIn(){
+  document.getElementById("loginOverlay").classList.remove("open");
+  await loadState();
+  startPolling();
+}
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("loginBtn");
+  const err = document.getElementById("loginError");
+  err.style.display = "none";
+  btn.disabled = true;
+  btn.textContent = "Bezig met inloggen…";
+  try{
+    await loginWithPopup();
+    await afterSignedIn();
+  }catch(e){
+    console.error(e);
+    err.textContent = "Inloggen mislukt — controleer of pop-ups zijn toegestaan en probeer opnieuw.";
+    err.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Inloggen met Microsoft";
+  }
 });
+
+initMsal().then(alreadySignedIn => {
+  if(alreadySignedIn) afterSignedIn();
+}).catch(e => console.error(e));
 </script>
 </body>
 </html>
