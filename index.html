@@ -6,7 +6,7 @@
 <title>Planbord (SharePoint)</title>
 <style>
   :root{
-    --board-bg:#f6f5f0;
+    --board-bg:#f5f3ea;
     --ink:#1c2430;
     --line:#1c2430;
     --line-soft:#c9cdd6;
@@ -23,7 +23,12 @@
     --darkblue:#1a2f6b;
     --muted:#6b7280;
     --accent:#2454c9;
-    font-family: "Segoe UI", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    --brand-yellow:#d2c000;
+    --brand-yellow-dark:#b2a400;
+    --brand-dark:#404649;
+    --brand-blue:#7ca6bc;
+    --brand-cream:#f3f0df;
+    font-family: "Roboto", "Segoe UI", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
   }
   *{box-sizing:border-box;}
   body{
@@ -40,16 +45,29 @@
     padding:14px 20px;
     background:var(--paper);
     border-bottom:2px solid var(--line);
+    border-top:5px solid var(--brand-yellow);
     flex-wrap:wrap;
     position:sticky;
     top:0;
     z-index:50;
   }
+  .brand-block{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-logo{
+    height:34px;
+    width:auto;
+    display:block;
+  }
   .topbar h1{
-    font-size:18px;
+    font-size:19px;
     margin:0;
-    letter-spacing:.2px;
-    font-weight:700;
+    letter-spacing:-.2px;
+    font-weight:900;
+    text-transform:uppercase;
+    color:var(--brand-dark);
   }
   .topbar .sub{
     font-size:12px;
@@ -64,26 +82,29 @@
   }
   button.btn{
     font-family:inherit;
-    font-size:13px;
-    border:1.5px solid var(--line);
+    font-size:12.5px;
+    border:1.5px solid var(--brand-dark);
     background:var(--paper);
-    color:var(--ink);
+    color:var(--brand-dark);
     padding:7px 12px;
-    border-radius:6px;
+    border-radius:4px;
     cursor:pointer;
-    font-weight:600;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.2px;
   }
-  button.btn:hover{ background:#eef0f5; }
+  button.btn:hover{ background:var(--brand-dark); color:#fff; }
   button.btn.primary{
-    background:var(--ink);
-    color:#fff;
-    border-color:var(--ink);
+    background:var(--brand-yellow);
+    color:var(--brand-dark);
+    border-color:var(--brand-dark);
+    font-weight:800;
   }
-  button.btn.primary:hover{ background:#000; }
+  button.btn.primary:hover{ background:var(--brand-dark); color:var(--brand-yellow); border-color:var(--brand-dark); }
   button.btn.small{
     padding:4px 8px;
-    font-size:12px;
-    font-weight:500;
+    font-size:11px;
+    font-weight:800;
   }
   .status-pill{
     font-size:11px;
@@ -110,7 +131,16 @@
   }
   .legend.open{ display:flex; }
   .legend-group{ display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-  .legend-title{ font-weight:700; margin-right:2px; }
+  .legend-title{
+    font-weight:900;
+    margin-right:2px;
+    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:.2px;
+    color:var(--brand-dark);
+    border-bottom:3px solid var(--brand-yellow);
+    padding-bottom:1px;
+  }
   .legend-item{ display:flex; align-items:center; gap:4px; white-space:nowrap;}
   .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0;}
 
@@ -136,7 +166,20 @@
   .week-head{
     padding:10px 12px 8px;
     border-bottom:3px solid var(--line);
-    background: linear-gradient(#fff,#fbfbf9);
+    background: var(--paper);
+  }
+  .week-accent{
+    width:34px;
+    height:4px;
+    background:var(--brand-yellow);
+    border-radius:2px;
+    margin:4px 0 5px;
+  }
+  .week-kasten-total{
+    font-size:11px;
+    font-weight:800;
+    color:var(--brand-dark);
+    margin-top:3px;
   }
   .week-head-top{
     display:flex;
@@ -144,8 +187,11 @@
     justify-content:space-between;
   }
   .week-num{
-    font-size:20px;
-    font-weight:800;
+    font-size:22px;
+    font-weight:900;
+    letter-spacing:-.3px;
+    text-transform:uppercase;
+    color:var(--brand-dark);
   }
   .week-range{
     font-size:11px;
@@ -159,20 +205,36 @@
     gap:4px;
   }
   .notice{
-    background:#fff4cf;
-    border:1px solid #e2c976;
-    border-radius:4px;
-    padding:3px 6px;
+    background:var(--paper);
+    border:none;
+    border-left:4px solid var(--brand-yellow);
+    border-radius:2px;
+    padding:3px 6px 3px 7px;
     font-size:11.5px;
+    font-weight:700;
+    color:var(--brand-dark);
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
     gap:6px;
   }
-  .notice .txt{ white-space:pre-wrap; word-break:break-word; }
+  .notice .txt{ white-space:pre-wrap; word-break:break-word; cursor:text; }
+  .notice-edit-input{
+    font-family:inherit;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--brand-dark);
+    border:none;
+    border-bottom:1px solid var(--brand-yellow-dark);
+    background:transparent;
+    flex:1;
+    min-width:0;
+    padding:0;
+  }
+  .notice-edit-input:focus{ outline:none; }
   .notice .del{
     cursor:pointer;
-    color:#a08228;
+    color:var(--brand-dark);
     font-weight:700;
     font-size:12px;
     line-height:1;
@@ -190,8 +252,8 @@
     font-weight:600;
     margin-top:4px;
   }
-  .notice-input::placeholder{ color:var(--accent); font-weight:600; }
-  .notice-input:focus{ outline:none; border-color:var(--accent); border-style:solid; }
+  .notice-input::placeholder{ color:var(--brand-dark); font-weight:600; opacity:.65; }
+  .notice-input:focus{ outline:none; border-color:var(--brand-yellow-dark); border-style:solid; }
 
   .day-row{
     border-bottom:1px solid var(--line-soft);
@@ -211,8 +273,9 @@
     padding-top:8px;
     background:#fafaf7;
   }
+  .day-label.is-today{ background:var(--brand-yellow); }
   .day-label .num{ font-size:15px; font-weight:800; }
-  .day-label .abbr{ font-size:10.5px; color:var(--muted); font-weight:700; text-transform:lowercase; }
+  .day-label .abbr{ font-size:10px; color:var(--brand-dark); font-weight:900; text-transform:uppercase; letter-spacing:.3px; }
 
   .day-cell{
     flex:1;
@@ -245,6 +308,11 @@
     min-width:44px;
     opacity:1;
   }
+  .day-col.day-col-compact{
+    flex:0 1 auto;
+    min-width:70px;
+    max-width:170px;
+  }
 
   .card{
     background:#fff;
@@ -259,12 +327,13 @@
   }
   .card:active{ cursor:grabbing; }
   .card.dragging{ opacity:.4; }
+  .card.card-compact{ padding:2px 5px; font-size:10.5px; }
   .card.drop-before{ box-shadow: 0 -3px 0 0 var(--status-blue); }
   .card.drop-after{ box-shadow: 0 3px 0 0 var(--status-blue); }
   .card-line{
     display:flex;
     align-items:center;
-    gap:5px;
+    gap:0;
     white-space:nowrap;
   }
   .card-line .dot{ flex-shrink:0; }
@@ -288,10 +357,11 @@
     border-radius:3px;
     line-height:1.5;
     flex-shrink:0;
+    margin-left:4px;
   }
   .tag.shelf{ background:#e9eaed; color:#1c2430; }
-  .tag.fd{ background:#dff3e4; color:var(--green); }
-  .tag.fp{ background:#dbe7fb; color:var(--darkblue); }
+  .tag.fd{ background:none; padding-left:0; color:var(--green); }
+  .tag.fp{ background:none; padding-left:0; color:var(--darkblue); }
   .tag-dot{
     width:6px;height:6px;border-radius:50%;
     display:inline-block;
@@ -304,6 +374,7 @@
     font-size:13px;
     -webkit-text-stroke:0.6px currentColor;
     flex-shrink:0;
+    margin-left:4px;
   }
   .opmerking-marker{
     color:var(--red);
@@ -311,6 +382,7 @@
     font-size:15px;
     line-height:1;
     flex-shrink:0;
+    margin-left:4px;
   }
   .deliv-chip{
     display:flex;
@@ -320,6 +392,7 @@
     font-weight:700;
     font-size:10.5px;
     flex-shrink:0;
+    margin-top:2px;
     border-left:2px solid var(--orange);
     padding-left:5px;
   }
@@ -381,7 +454,7 @@
     cursor:pointer;
     margin-top:2px;
   }
-  .add-card-btn:hover{ border-color:var(--accent); color:var(--accent); }
+  .add-card-btn:hover{ border-color:var(--brand-yellow-dark); color:var(--brand-dark); }
 
   /* modal */
   .overlay{
@@ -404,7 +477,7 @@
     padding:18px 18px 16px;
     box-shadow:0 12px 40px rgba(0,0,0,.25);
   }
-  .modal h2{ font-size:16px; margin:0 0 12px; }
+  .modal h2{ font-size:16px; margin:0 0 12px; font-weight:900; text-transform:uppercase; letter-spacing:-.2px; color:var(--brand-dark); }
   .type-switch{
     display:flex;
     gap:6px;
@@ -526,15 +599,20 @@
 <body>
 
 <div class="topbar">
-  <div>
-    <h1>Planbord</h1>
-    <div class="sub">Digitale versie van het whiteboard — gekoppeld aan SharePoint, inloggen met Microsoft</div>
+  <div class="brand-block">
+    <img class="brand-logo" src="data:image/png;base64,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" alt="Tom-Lock">
+    <div>
+      <h1>Planbord</h1>
+      <div class="sub">Digitale versie van het whiteboard — gekoppeld aan SharePoint, inloggen met Microsoft</div>
+    </div>
   </div>
   <div class="topbar-controls">
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
     <button class="btn small" id="legendBtn">Legenda</button>
+    <button class="btn small" id="logBtn">Log</button>
     <button class="btn" id="prevWeekBtn" title="Wijzigt alleen jouw eigen weergave">◀ Vorige</button>
-    <button class="btn primary" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Bord opschuiven ▶</button>
+    <button class="btn primary small" id="todayBtn" title="Wijzigt alleen jouw eigen weergave">Huidige week</button>
+    <button class="btn" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Volgende ▶</button>
   </div>
 </div>
 
@@ -575,6 +653,25 @@
 
 <div class="board-scroll">
   <div class="board" id="board"></div>
+</div>
+
+<div class="overlay" id="nameOverlay">
+  <div class="modal" style="max-width:320px; text-align:center; padding:24px 20px;">
+    <h2 style="margin-bottom:6px;">Wie ben jij?</h2>
+    <p style="font-size:13px; color:var(--muted); margin:0 0 14px;">Je naam wordt bij wijzigingen in het logboek genoteerd.</p>
+    <input type="text" id="nameInput" placeholder="Jouw naam" style="width:100%; padding:8px; border:1.5px solid var(--line-soft); border-radius:6px; font-size:14px; margin-bottom:12px; font-family:inherit;">
+    <button class="btn primary" id="nameSaveBtn" style="width:100%;">Opslaan</button>
+  </div>
+</div>
+
+<div class="overlay" id="logOverlay">
+  <div class="modal" style="max-width:460px;">
+    <h2>Bewerkingslog</h2>
+    <div id="logList" style="max-height:420px; overflow-y:auto; font-size:12.5px;"></div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button class="btn" id="logCloseBtn">Sluiten</button>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -635,6 +732,7 @@
         <div class="field">
           <label>Bezorgstatus</label>
           <select id="f_bezorgstatus">
+            <option value="">Geen status</option>
             <option value="red">Gepland, nog niet gebeld</option>
             <option value="yellow">Gevraagd, geen reactie</option>
             <option value="green">Bevestigd</option>
@@ -741,9 +839,6 @@ async function getGraphToken(){
   }
 }
 
-// Generic helpers: every "record" is one SharePoint list item, identified by its Title.
-// This lets us store the shared board under one key, and each person's own
-// view (which week they're looking at) under a separate key per person.
 async function graphGetItemByKey(key){
   const token = await getGraphToken();
   const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields`;
@@ -806,9 +901,8 @@ function fmtDateKey(d){
 }
 function weekKey(isoYear, isoWeek){ return isoYear+"-"+isoWeek; }
 
-let view = null; // personal to this signed-in account — which week is shown
-let spItemId = null;   // list item id for the shared board data
-let viewItemId = null; // list item id for this person's own view
+const VIEW_KEY = "planbord-view-v1";
+let view = null; // personal to this browser/account — which week is shown
 
 function defaultState(){
   return { notices:{}, cards:{} };
@@ -817,6 +911,17 @@ function defaultView(){
   const today = isoWeekData(new Date());
   return { anchorYear: today.isoYear, anchorWeek: today.isoWeek };
 }
+
+let username = null; // set from the signed-in Microsoft account, no separate prompt needed
+let spItemId = null;   // list item id for the shared board data
+let viewItemId = null; // list item id for this person's own view
+
+function logAction(action, summary){
+  if(!state.log) state.log = [];
+  state.log.push({ ts: Date.now(), user: username || "onbekend", action, summary });
+  if(state.log.length > 200) state.log = state.log.slice(-200);
+}
+
 function viewKeyForCurrentUser(){
   return "planbord-view-" + (msalAccount ? (msalAccount.username || msalAccount.homeAccountId) : "onbekend");
 }
@@ -848,7 +953,6 @@ async function persistView(){
     }
   }catch(e){
     console.error(e);
-    // personal view is a nice-to-have, not critical — fail silently
   }
 }
 
@@ -948,11 +1052,24 @@ function renderWeekCol(col){
   head.style.gridRow = "1";
   if(col.offset < 3) head.style.borderRight = "2px solid var(--line)";
   const endDate = new Date(col.monday); endDate.setUTCDate(endDate.getUTCDate()+4);
+  let kastenTotal = 0;
+  for(let i=0;i<5;i++){
+    const dk = new Date(col.monday); dk.setUTCDate(dk.getUTCDate()+i);
+    const key = fmtDateKey(dk);
+    (state.cards[key] || []).forEach(c => {
+      if(c.type === "order" && c.kastenAantal){
+        const n = parseInt(c.kastenAantal, 10);
+        if(!isNaN(n)) kastenTotal += n;
+      }
+    });
+  }
   head.innerHTML = `
     <div class="week-head-top">
       <div>
-        <div class="week-num">${col.offset===0 ? "Week "+col.isoWeek : "Week "+col.isoWeek}</div>
+        <div class="week-num">Week ${col.isoWeek}</div>
+        <div class="week-accent"></div>
         <div class="week-range">${fmtDMY(col.monday)} – ${fmtDMY(endDate)}</div>
+        ${kastenTotal > 0 ? `<div class="week-kasten-total">K: ${kastenTotal}</div>` : ""}
       </div>
     </div>
     <div class="notices" id="notices-${wk}"></div>
@@ -965,7 +1082,34 @@ function renderWeekCol(col){
     const n = document.createElement("div");
     n.className = "notice";
     n.innerHTML = `<span class="txt"></span><span class="del">×</span>`;
-    n.querySelector(".txt").textContent = txt;
+    const txtEl = n.querySelector(".txt");
+    txtEl.textContent = txt;
+    txtEl.title = "Klik om te bewerken";
+    txtEl.addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "notice-edit-input";
+      input.value = state.notices[wk][idx];
+      txtEl.replaceWith(input);
+      input.focus();
+      input.select();
+      let done = false;
+      const save = () => {
+        if(done) return;
+        done = true;
+        const val = input.value.trim();
+        if(val){
+          state.notices[wk][idx] = val;
+          persist();
+        }
+        render();
+      };
+      input.addEventListener("blur", save);
+      input.addEventListener("keydown", (e) => {
+        if(e.key === "Enter"){ input.blur(); }
+        else if(e.key === "Escape"){ done = true; render(); }
+      });
+    });
     n.querySelector(".del").addEventListener("click", () => {
       state.notices[wk].splice(idx,1);
       persist(); render();
@@ -987,13 +1131,16 @@ function renderWeekCol(col){
   for(let d=0; d<5; d++){
     const date = new Date(col.monday); date.setUTCDate(date.getUTCDate()+d);
     const dayKey = fmtDateKey(date);
+    const now = new Date();
+    const todayKey = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+    const isToday = dayKey === todayKey;
     const row = document.createElement("div");
     row.className = "day-row";
     row.style.gridColumn = String(col.offset + 1);
     row.style.gridRow = String(d + 2);
     if(col.offset < 3) row.style.borderRight = "2px solid var(--line)";
     row.innerHTML = `
-      <div class="day-label">
+      <div class="day-label${isToday ? ' is-today' : ''}">
         <div class="num">${date.getUTCDate()}</div>
         <div class="abbr">${DAY_ABBR[d]}</div>
       </div>
@@ -1016,6 +1163,9 @@ function renderWeekCol(col){
         colEl.appendChild(addBtn);
       } else if(cardsInCol.length === 0){
         colEl.classList.add("day-col-empty");
+      }
+      if(cardsInCol.length > 0 && cardsInCol.every(c => c.type !== "order")){
+        colEl.classList.add("day-col-compact");
       }
       colEl.addEventListener("dragover", e => { e.preventDefault(); colEl.classList.add("dragover"); });
       colEl.addEventListener("dragleave", () => colEl.classList.remove("dragover"));
@@ -1043,6 +1193,11 @@ function renderWeekCol(col){
 
 function fmtDMY(d){
   return String(d.getUTCDate()).padStart(2,"0")+"/"+String(d.getUTCMonth()+1).padStart(2,"0");
+}
+function fmtDayLabel(dayKey){
+  const d = new Date(dayKey + "T00:00:00Z");
+  const abbr = ["zo","ma","di","wo","do","vr","za"][d.getUTCDay()];
+  return abbr + " " + fmtDMY(d);
 }
 
 const STATUS_COLOR = { blue:"var(--status-blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--status-green)" };
@@ -1104,6 +1259,11 @@ function renderCard(card, dayKey){
     conf.addEventListener("click", ev => ev.stopPropagation());
     conf.querySelector(".yes").addEventListener("click", () => {
       state.cards[dayKey] = (state.cards[dayKey]||[]).filter(c => c.id !== card.id);
+      let summary = "";
+      if(card.type === "order") summary = (card.ordernr || "(geen nr.)") + (card.klant ? " · " + card.klant : "");
+      else if(card.type === "supplier") summary = card.naam + (card.code ? ": " + card.code : "");
+      else if(card.type === "note") summary = card.text;
+      logAction("verwijderd", summary + " (" + fmtDayLabel(dayKey) + ")");
       persist(); render();
     });
     conf.querySelector(".no").addEventListener("click", () => conf.remove());
@@ -1118,19 +1278,21 @@ function renderCard(card, dayKey){
 
     const dot = document.createElement("span");
     dot.className = "dot";
-    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);`;
+    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);margin-right:5px;`;
     line.appendChild(dot);
 
     const text = document.createElement("span");
     text.className = "line-text";
     const ordSpan = document.createElement("span");
     ordSpan.className = "ordnr";
+    ordSpan.style.cssText = "display:inline-block; min-width:6ch; text-align:right;";
     ordSpan.textContent = card.ordernr || "(geen nr.)";
     text.appendChild(ordSpan);
     if(card.klant){
       const restSpan = document.createElement("span");
       restSpan.className = "rest";
-      restSpan.textContent = " " + card.klant;
+      restSpan.style.cssText = "display:inline-block; min-width:4ch; margin-left:6px;";
+      restSpan.textContent = card.klant;
       text.appendChild(restSpan);
     }
     line.appendChild(text);
@@ -1138,25 +1300,32 @@ function renderCard(card, dayKey){
     if(card.kastenAantal){
       const t = document.createElement("span");
       t.className = "tag shelf";
+      const numSpan = document.createElement("span");
+      numSpan.style.cssText = "display:inline-block; min-width:2ch;";
+      numSpan.textContent = card.kastenAantal;
+      t.appendChild(numSpan);
       if(card.kastenStatus){
         const kd = document.createElement("span");
         kd.className = "tag-dot";
+        kd.style.cssText = "margin-left:3px; margin-right:0;";
         kd.style.background = STATUS_COLOR[card.kastenStatus] || "#ffffff";
         kd.style.border = "1px solid rgba(28,36,48,.25)";
         t.appendChild(kd);
       }
-      t.appendChild(document.createTextNode(card.kastenAantal));
       text.appendChild(t);
     }
     (card.extras || []).forEach(ex => {
       const t = document.createElement("span");
       t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
-      const ed = document.createElement("span");
-      ed.className = "tag-dot";
-      ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
-      ed.style.border = "1px solid rgba(28,36,48,.25)";
-      t.appendChild(ed);
       t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
+      if(ex.status){
+        const ed = document.createElement("span");
+        ed.className = "tag-dot";
+        ed.style.cssText = "margin-left:3px; margin-right:0;";
+        ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
+        ed.style.border = "1px solid rgba(28,36,48,.25)";
+        t.appendChild(ed);
+      }
       text.appendChild(t);
     });
     if(card.spoed){
@@ -1166,27 +1335,28 @@ function renderCard(card, dayKey){
       arrow.title = "Spoed";
       text.appendChild(arrow);
     }
+    if(card.opmerkingen){
+      const remMark = document.createElement("span");
+      remMark.className = "opmerking-marker";
+      remMark.textContent = "*";
+      remMark.title = "Opmerking (open het bordje om te lezen)";
+      text.appendChild(remMark);
+    }
     if(card.eigenbezorging){
       const chip = document.createElement("span");
       chip.className = "deliv-chip";
       const cdot = document.createElement("span");
-      cdot.style.cssText = `background:${card.bezorgstatus==='green'?'var(--status-green)':card.bezorgstatus==='yellow'?'var(--yellow)':'var(--red)'};width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;`;
+      cdot.style.cssText = `background:${card.bezorgstatus==='green'?'var(--status-green)':card.bezorgstatus==='yellow'?'var(--yellow)':card.bezorgstatus==='red'?'var(--red)':'#ffffff'};width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;border:1px solid rgba(28,36,48,.25);`;
       chip.appendChild(cdot);
       const cname = document.createElement("span");
       cname.textContent = card.chauffeur || "chauffeur?";
       chip.appendChild(cname);
       text.appendChild(chip);
     }
-    if(card.opmerkingen){
-      const remMark = document.createElement("span");
-      remMark.className = "opmerking-marker";
-      remMark.textContent = "*";
-      remMark.title = "Opmerking (open het bordje om te lezen)";
-      line.appendChild(remMark);
-    }
     line.appendChild(del);
     el.appendChild(line);
   } else if(card.type === "supplier"){
+    el.classList.add("card-compact");
     el.style.borderLeftColor = "var(--blue)";
     el.title = card.naam || "";
     const line = document.createElement("div");
@@ -1203,11 +1373,12 @@ function renderCard(card, dayKey){
       t.style.background = "#dbe7fb";
       t.style.color = "var(--blue)";
       t.textContent = "ophalen";
-      line.appendChild(t);
+      text.appendChild(t);
     }
     line.appendChild(del);
     el.appendChild(line);
   } else if(card.type === "note"){
+    el.classList.add("card-compact");
     const noteColor = card.color || "#d1650f";
     el.style.borderLeftColor = noteColor;
     el.title = card.text || "";
@@ -1264,6 +1435,7 @@ function renderExtrasList(){
       </select>
       <input type="text" class="extra-code" placeholder="1">
       <select class="extra-status">
+        <option value="">geen status</option>
         <option value="blue">blauw</option>
         <option value="red">rood</option>
         <option value="yellow">geel</option>
@@ -1372,7 +1544,15 @@ overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal()
 
 document.getElementById("deleteCardBtn").addEventListener("click", () => {
   if(!editingCardId || !editingDayKey) return;
+  const toDelete = (state.cards[editingDayKey] || []).find(c => c.id === editingCardId);
   state.cards[editingDayKey] = (state.cards[editingDayKey]||[]).filter(c => c.id !== editingCardId);
+  if(toDelete){
+    let summary = "";
+    if(toDelete.type === "order") summary = (toDelete.ordernr || "(geen nr.)") + (toDelete.klant ? " · " + toDelete.klant : "");
+    else if(toDelete.type === "supplier") summary = toDelete.naam + (toDelete.code ? ": " + toDelete.code : "");
+    else if(toDelete.type === "note") summary = toDelete.text;
+    logAction("verwijderd", summary + " (" + fmtDayLabel(editingDayKey) + ")");
+  }
   persist(); render(); closeModal();
 });
 
@@ -1400,6 +1580,16 @@ document.getElementById("saveCardBtn").addEventListener("click", () => {
     card.bezorgstatus = document.getElementById("f_bezorgstatus").value;
     card.opmerkingen = document.getElementById("f_opmerkingen").value.trim();
     if(!card.ordernr && !card.klant){ showFormError("Vul minstens een ordernummer of klant in."); return; }
+    if(card.ordernr){
+      const wanted = card.ordernr.trim().toLowerCase();
+      for(const dk of Object.keys(state.cards)){
+        const dup = (state.cards[dk] || []).find(c => c.type === "order" && c.id !== card.id && (c.ordernr||"").trim().toLowerCase() === wanted);
+        if(dup){
+          showFormError("Let op: deze order bestaat al, op " + fmtDayLabel(dk) + ".");
+          return;
+        }
+      }
+    }
   } else if(currentType === "supplier"){
     card.naam = document.getElementById("s_naam").value.trim();
     card.code = document.getElementById("s_code").value.trim();
@@ -1419,12 +1609,49 @@ document.getElementById("saveCardBtn").addEventListener("click", () => {
   } else {
     state.cards[editingDayKey].push(card);
   }
+  let summary = "";
+  if(card.type === "order") summary = (card.ordernr || "(geen nr.)") + (card.klant ? " · " + card.klant : "");
+  else if(card.type === "supplier") summary = card.naam + (card.code ? ": " + card.code : "");
+  else if(card.type === "note") summary = card.text;
+  logAction(editingCardId ? "gewijzigd" : "toegevoegd", summary + " (" + fmtDayLabel(editingDayKey) + ")");
   persist(); render(); closeModal();
 });
 
 /* ---------- top controls ---------- */
 document.getElementById("legendBtn").addEventListener("click", () => {
   document.getElementById("legendPanel").classList.toggle("open");
+});
+document.getElementById("logBtn").addEventListener("click", () => {
+  const list = document.getElementById("logList");
+  list.innerHTML = "";
+  const entries = (state.log || []).slice().reverse();
+  if(entries.length === 0){
+    const p = document.createElement("p");
+    p.style.color = "var(--muted)";
+    p.textContent = "Nog geen wijzigingen gelogd.";
+    list.appendChild(p);
+  } else {
+    entries.forEach(e => {
+      const row = document.createElement("div");
+      row.style.cssText = "padding:7px 0; border-bottom:1px solid var(--line-soft);";
+      const dt = new Date(e.ts);
+      const dtStr = dt.toLocaleString("nl-NL", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+      const top = document.createElement("div");
+      top.innerHTML = "<b></b> — <span></span> <span style='color:var(--muted);'>(" + dtStr + ")</span>";
+      top.querySelector("b").textContent = e.user;
+      top.querySelector("span").textContent = e.action;
+      row.appendChild(top);
+      const bottom = document.createElement("div");
+      bottom.style.color = "#3a4150";
+      bottom.textContent = e.summary;
+      row.appendChild(bottom);
+      list.appendChild(row);
+    });
+  }
+  document.getElementById("logOverlay").classList.add("open");
+});
+document.getElementById("logCloseBtn").addEventListener("click", () => {
+  document.getElementById("logOverlay").classList.remove("open");
 });
 document.getElementById("advanceBtn").addEventListener("click", () => {
   const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
@@ -1440,8 +1667,14 @@ document.getElementById("prevWeekBtn").addEventListener("click", () => {
   view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
   persistView(); render();
 });
+document.getElementById("todayBtn").addEventListener("click", () => {
+  const today = isoWeekData(new Date());
+  view.anchorYear = today.isoYear; view.anchorWeek = today.isoWeek;
+  persistView(); render();
+});
 
 async function afterSignedIn(){
+  username = msalAccount.name || msalAccount.username;
   document.getElementById("loginOverlay").classList.remove("open");
   await loadView();
   await loadState();
