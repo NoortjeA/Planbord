@@ -1472,6 +1472,8 @@ function openModal(dayKey, card){
   editingCardId = card ? card.id : null;
   document.getElementById("modalTitle").textContent = card ? "Bordje bewerken" : "Nieuw bordje";
   document.getElementById("deleteCardBtn").style.display = card ? "" : "none";
+  document.getElementById("deleteCardBtn").textContent = "Verwijderen";
+  document.getElementById("deleteCardBtn").dataset.confirming = "0";
 
   // reset fields
   document.getElementById("f_status").value = "blue";
@@ -1542,7 +1544,13 @@ function closeModal(){
 document.getElementById("cancelBtn").addEventListener("click", closeModal);
 overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
 
-document.getElementById("deleteCardBtn").addEventListener("click", () => {
+document.getElementById("deleteCardBtn").addEventListener("click", function(){
+  const btn = this;
+  if(btn.dataset.confirming !== "1"){
+    btn.dataset.confirming = "1";
+    btn.textContent = "Zeker weten? Nogmaals klikken";
+    return;
+  }
   if(!editingCardId || !editingDayKey) return;
   const toDelete = (state.cards[editingDayKey] || []).find(c => c.id === editingCardId);
   state.cards[editingDayKey] = (state.cards[editingDayKey]||[]).filter(c => c.id !== editingCardId);
