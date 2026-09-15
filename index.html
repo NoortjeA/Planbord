@@ -12,7 +12,9 @@
     --line-soft:#c9cdd6;
     --paper:#ffffff;
     --paper-shadow: 0 1px 2px rgba(28,36,48,.12), 0 1px 1px rgba(28,36,48,.08);
-    --blue:#2454c9;
+    --blue:#1a3c8c;
+    --status-blue:#00c4f2;
+    --status-green:#5cc48a;
     --red:#c92424;
     --yellow:#d8a400;
     --green:#1f8a45;
@@ -216,11 +218,33 @@
     flex:1;
     padding:4px;
     display:flex;
+    flex-direction:row;
+    gap:5px;
+    min-width:0;
+  }
+  .day-col{
+    flex:1;
+    display:flex;
     flex-direction:column;
     gap:3px;
     min-width:0;
   }
-  .day-cell.dragover{ background:#eef4ff; }
+  .day-col:not(:last-child){
+    border-right:1px dashed var(--line-soft);
+    padding-right:5px;
+  }
+  .day-col.dragover{ background:#eef4ff; }
+  .day-col.day-col-empty{
+    flex:0 0 10px;
+    min-width:10px;
+    padding-right:2px;
+    opacity:.35;
+  }
+  .day-col.day-col-empty.dragover{
+    flex:0 0 44px;
+    min-width:44px;
+    opacity:1;
+  }
 
   .card{
     background:#fff;
@@ -235,6 +259,8 @@
   }
   .card:active{ cursor:grabbing; }
   .card.dragging{ opacity:.4; }
+  .card.drop-before{ box-shadow: 0 -3px 0 0 var(--status-blue); }
+  .card.drop-after{ box-shadow: 0 3px 0 0 var(--status-blue); }
   .card-line{
     display:flex;
     align-items:center;
@@ -245,9 +271,11 @@
   .line-text{
     overflow:hidden;
     text-overflow:ellipsis;
-    flex:0 1 auto;
+    white-space:nowrap;
+    flex:1 1 auto;
     min-width:0;
   }
+  .line-text > *{ vertical-align:middle; }
   .line-text .ordnr{
     font-weight:800;
     font-family:"Consolas","SFMono-Regular",Menlo,monospace;
@@ -273,7 +301,15 @@
   .arrow-urgent{
     color:var(--red);
     font-weight:900;
-    font-size:12px;
+    font-size:13px;
+    -webkit-text-stroke:0.6px currentColor;
+    flex-shrink:0;
+  }
+  .opmerking-marker{
+    color:var(--red);
+    font-weight:900;
+    font-size:15px;
+    line-height:1;
     flex-shrink:0;
   }
   .deliv-chip{
@@ -497,25 +533,25 @@
   <div class="topbar-controls">
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
     <button class="btn small" id="legendBtn">Legenda</button>
-    <button class="btn" id="prevWeekBtn">◀ Vorige</button>
-    <button class="btn primary" id="advanceBtn">Bord opschuiven ▶</button>
+    <button class="btn" id="prevWeekBtn" title="Wijzigt alleen jouw eigen weergave">◀ Vorige</button>
+    <button class="btn primary" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Bord opschuiven ▶</button>
   </div>
 </div>
 
 <div class="legend" id="legendPanel">
   <div class="legend-group">
     <span class="legend-title">Orderstatus:</span>
-    <span class="legend-item"><span class="dot" style="background:var(--blue)"></span>besteld</span>
+    <span class="legend-item"><span class="dot" style="background:var(--status-blue)"></span>besteld</span>
     <span class="legend-item"><span class="dot" style="background:var(--red)"></span>op voorraad</span>
     <span class="legend-item"><span class="dot" style="background:var(--yellow)"></span>magazijn gestart</span>
-    <span class="legend-item"><span class="dot" style="background:var(--green)"></span>gereed</span>
+    <span class="legend-item"><span class="dot" style="background:var(--status-green)"></span>gereed</span>
   </div>
   <div class="legend-group">
     <span class="legend-title">Bezorging:</span>
     <span class="legend-item" style="color:var(--orange);font-weight:700;">— lijn = eigen bezorging</span>
     <span class="legend-item"><span class="dot" style="background:var(--red)"></span>gepland, nog niet gebeld</span>
     <span class="legend-item"><span class="dot" style="background:var(--yellow)"></span>gevraagd, geen reactie</span>
-    <span class="legend-item"><span class="dot" style="background:var(--green)"></span>bevestigd</span>
+    <span class="legend-item"><span class="dot" style="background:var(--status-green)"></span>bevestigd</span>
     <span class="legend-item" style="color:var(--red);font-weight:800;">↑ spoed, niet wachten op leverdatum</span>
   </div>
   <div class="legend-group">
@@ -538,7 +574,6 @@
 </div>
 
 <div class="board-scroll">
-
   <div class="board" id="board"></div>
 </div>
 
@@ -555,6 +590,7 @@
       <div class="field">
         <label>Status</label>
         <select id="f_status">
+          <option value="">Geen status</option>
           <option value="blue">Besteld (blauw)</option>
           <option value="red">Op voorraad (rood)</option>
           <option value="yellow">Magazijn gestart (geel)</option>
@@ -605,6 +641,10 @@
           </select>
         </div>
       </div>
+      <div class="field">
+        <label>Opmerkingen</label>
+        <textarea id="f_opmerkingen" placeholder="Interne opmerking — alleen zichtbaar bij bewerken, op het bordje zelf zie je enkel een rode stip"></textarea>
+      </div>
     </div>
 
     <div id="fieldsSupplier" style="display:none;">
@@ -627,11 +667,11 @@
       <div class="field">
         <label>Kleur</label>
         <div class="color-pick" id="noteColorPick">
-          <label class="sel"><input type="radio" name="notecolor" value="#fff4cf" checked><span class="swatch" style="background:#fff4cf;border:1px solid #d8c574"></span>Geel</label>
-          <label><input type="radio" name="notecolor" value="#f6dbe8"><span class="swatch" style="background:#f6dbe8;border:1px solid #dba6c2"></span>Roze</label>
-          <label><input type="radio" name="notecolor" value="#dbe7fb"><span class="swatch" style="background:#dbe7fb;border:1px solid #a9c3ec"></span>Blauw</label>
-          <label><input type="radio" name="notecolor" value="#dff3e4"><span class="swatch" style="background:#dff3e4;border:1px solid #a6d9b6"></span>Groen</label>
-          <label><input type="radio" name="notecolor" value="#ffffff"><span class="swatch" style="background:#ffffff;border:1px solid #ccc"></span>Wit</label>
+          <label class="sel"><input type="radio" name="notecolor" value="#d1650f" checked><span class="swatch" style="background:#d1650f"></span>Oranje</label>
+          <label><input type="radio" name="notecolor" value="#c2255c"><span class="swatch" style="background:#c2255c"></span>Roze</label>
+          <label><input type="radio" name="notecolor" value="#2454c9"><span class="swatch" style="background:#2454c9"></span>Blauw</label>
+          <label><input type="radio" name="notecolor" value="#1f8a45"><span class="swatch" style="background:#1f8a45"></span>Groen</label>
+          <label><input type="radio" name="notecolor" value="#1c2430"><span class="swatch" style="background:#1c2430"></span>Zwart</label>
         </div>
       </div>
     </div>
@@ -651,8 +691,6 @@
 <script>
 /* ============================================================
    SHAREPOINT / MICROSOFT ENTRA ID CONFIGURATIE
-   Vul deze vier waarden in voordat je dit bestand host.
-   Zie de losse setup-uitleg voor waar je ze vandaan haalt.
    ============================================================ */
 const SP_CONFIG = {
   clientId: "75a374a6-4a2d-4c55-87c1-bc85710e69c9",
@@ -662,8 +700,7 @@ const SP_CONFIG = {
 };
 const GRAPH_SCOPES = ["Sites.ReadWrite.All"];
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-const ITEM_KEY = "planbord-data-v1";
-let spItemId = null;
+const SHARED_KEY = "planbord-data-v1";
 let msalInstance = null;
 let msalAccount = null;
 
@@ -704,30 +741,32 @@ async function getGraphToken(){
   }
 }
 
-async function graphGetItem(){
+// Generic helpers: every "record" is one SharePoint list item, identified by its Title.
+// This lets us store the shared board under one key, and each person's own
+// view (which week they're looking at) under a separate key per person.
+async function graphGetItemByKey(key){
   const token = await getGraphToken();
   const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields`;
   const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   if(!res.ok) throw new Error("Graph GET faalde: " + res.status);
   const data = await res.json();
-  return (data.value || []).find(it => it.fields && it.fields.Title === ITEM_KEY) || null;
+  return (data.value || []).find(it => it.fields && it.fields.Title === key) || null;
 }
 
-async function graphCreateItem(json){
+async function graphCreateItem(key, json){
   const token = await getGraphToken();
   const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items`, {
     method: "POST",
     headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: { Title: ITEM_KEY, Data: json } })
+    body: JSON.stringify({ fields: { Title: key, Data: json } })
   });
   if(!res.ok) throw new Error("Graph POST faalde: " + res.status);
-  const created = await res.json();
-  spItemId = created.id;
+  return (await res.json()).id;
 }
 
-async function graphUpdateItem(json){
+async function graphUpdateItem(itemId, json){
   const token = await getGraphToken();
-  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items/${spItemId}/fields`, {
+  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items/${itemId}/fields`, {
     method: "PATCH",
     headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
     body: JSON.stringify({ Data: json })
@@ -767,19 +806,60 @@ function fmtDateKey(d){
 }
 function weekKey(isoYear, isoWeek){ return isoYear+"-"+isoWeek; }
 
+let view = null; // personal to this signed-in account — which week is shown
+let spItemId = null;   // list item id for the shared board data
+let viewItemId = null; // list item id for this person's own view
+
 function defaultState(){
+  return { notices:{}, cards:{} };
+}
+function defaultView(){
   const today = isoWeekData(new Date());
-  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek, notices:{}, cards:{} };
+  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek };
+}
+function viewKeyForCurrentUser(){
+  return "planbord-view-" + (msalAccount ? (msalAccount.username || msalAccount.homeAccountId) : "onbekend");
+}
+
+async function loadView(){
+  try{
+    const item = await graphGetItemByKey(viewKeyForCurrentUser());
+    if(item){
+      viewItemId = item.id;
+      view = JSON.parse(item.fields.Data || "{}");
+      if(!view.anchorYear) view = defaultView();
+    } else {
+      view = defaultView();
+      viewItemId = await graphCreateItem(viewKeyForCurrentUser(), JSON.stringify(view));
+    }
+  }catch(e){
+    console.error(e);
+    view = defaultView();
+  }
+}
+
+async function persistView(){
+  try{
+    const json = JSON.stringify(view);
+    if(viewItemId){
+      await graphUpdateItem(viewItemId, json);
+    } else {
+      viewItemId = await graphCreateItem(viewKeyForCurrentUser(), json);
+    }
+  }catch(e){
+    console.error(e);
+    // personal view is a nice-to-have, not critical — fail silently
+  }
 }
 
 async function loadState(){
   try{
-    const item = await graphGetItem();
+    const item = await graphGetItemByKey(SHARED_KEY);
     if(item){
       spItemId = item.id;
       const json = item.fields.Data || "{}";
       state = JSON.parse(json);
-      if(!state.anchorYear) state = defaultState();
+      if(!state.cards) state = defaultState();
       lastSavedJSON = json;
     } else {
       state = defaultState();
@@ -799,9 +879,9 @@ async function persist(){
   lastSavedJSON = json;
   try{
     if(spItemId){
-      await graphUpdateItem(json);
+      await graphUpdateItem(spItemId, json);
     } else {
-      await graphCreateItem(json);
+      spItemId = await graphCreateItem(SHARED_KEY, json);
     }
     setLive(true);
   }catch(e){
@@ -812,7 +892,7 @@ async function persist(){
 
 async function pollRemote(){
   try{
-    const item = await graphGetItem();
+    const item = await graphGetItemByKey(SHARED_KEY);
     if(item){
       spItemId = item.id;
       const json = item.fields.Data || "{}";
@@ -842,7 +922,7 @@ function setLive(ok){
 function getWeekColumns(){
   const cols = [];
   for(let i=0;i<4;i++){
-    const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+    const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
     mon.setUTCDate(mon.getUTCDate() + i*7);
     const wd = isoWeekData(mon);
     cols.push({ isoYear: wd.isoYear, isoWeek: wd.isoWeek, monday: mon, offset: i });
@@ -917,30 +997,42 @@ function renderWeekCol(col){
         <div class="num">${date.getUTCDate()}</div>
         <div class="abbr">${DAY_ABBR[d]}</div>
       </div>
-      <div class="day-cell" data-daykey="${dayKey}"></div>
+      <div class="day-cell" data-daykey="${dayKey}">
+        <div class="day-col" data-col="0"></div>
+        <div class="day-col" data-col="1"></div>
+        <div class="day-col" data-col="2"></div>
+      </div>
     `;
-    const cell = row.querySelector(".day-cell");
-    (state.cards[dayKey] || []).forEach(card => cell.appendChild(renderCard(card, dayKey)));
-    const addBtn = document.createElement("button");
-    addBtn.className = "add-card-btn";
-    addBtn.textContent = "+ bordje";
-    addBtn.addEventListener("click", () => openModal(dayKey, null));
-    cell.appendChild(addBtn);
-
-    cell.addEventListener("dragover", e => { e.preventDefault(); cell.classList.add("dragover"); });
-    cell.addEventListener("dragleave", () => cell.classList.remove("dragover"));
-    cell.addEventListener("drop", e => {
-      e.preventDefault();
-      cell.classList.remove("dragover");
-      if(!dragCardId || !dragFromDay) return;
-      const fromArr = state.cards[dragFromDay] || [];
-      const idx = fromArr.findIndex(c => c.id === dragCardId);
-      if(idx === -1) return;
-      const [moved] = fromArr.splice(idx,1);
-      if(!state.cards[dayKey]) state.cards[dayKey] = [];
-      state.cards[dayKey].push(moved);
-      dragCardId = null; dragFromDay = null;
-      persist(); render();
+    const dayCards = state.cards[dayKey] || [];
+    const colEls = row.querySelectorAll(".day-col");
+    colEls.forEach((colEl, colIdx) => {
+      const cardsInCol = dayCards.filter(c => (c.col || 0) === colIdx);
+      cardsInCol.forEach(card => colEl.appendChild(renderCard(card, dayKey)));
+      if(colIdx === 0){
+        const addBtn = document.createElement("button");
+        addBtn.className = "add-card-btn";
+        addBtn.textContent = "+ bordje";
+        addBtn.addEventListener("click", () => openModal(dayKey, null));
+        colEl.appendChild(addBtn);
+      } else if(cardsInCol.length === 0){
+        colEl.classList.add("day-col-empty");
+      }
+      colEl.addEventListener("dragover", e => { e.preventDefault(); colEl.classList.add("dragover"); });
+      colEl.addEventListener("dragleave", () => colEl.classList.remove("dragover"));
+      colEl.addEventListener("drop", e => {
+        e.preventDefault();
+        colEl.classList.remove("dragover");
+        if(!dragCardId || !dragFromDay) return;
+        const fromArr = state.cards[dragFromDay] || [];
+        const idx = fromArr.findIndex(c => c.id === dragCardId);
+        if(idx === -1) return;
+        const [moved] = fromArr.splice(idx,1);
+        moved.col = colIdx;
+        if(!state.cards[dayKey]) state.cards[dayKey] = [];
+        state.cards[dayKey].push(moved);
+        dragCardId = null; dragFromDay = null;
+        persist(); render();
+      });
     });
 
     wrap.appendChild(row);
@@ -953,7 +1045,7 @@ function fmtDMY(d){
   return String(d.getUTCDate()).padStart(2,"0")+"/"+String(d.getUTCMonth()+1).padStart(2,"0");
 }
 
-const STATUS_COLOR = { blue:"var(--blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--green)" };
+const STATUS_COLOR = { blue:"var(--status-blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--status-green)" };
 
 function renderCard(card, dayKey){
   const el = document.createElement("div");
@@ -967,6 +1059,37 @@ function renderCard(card, dayKey){
   el.addEventListener("click", (e) => {
     if(e.target.classList.contains("card-del")) return;
     openModal(dayKey, card);
+  });
+  el.addEventListener("dragover", (e) => {
+    if(!dragCardId || dragCardId === card.id) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = el.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    el.classList.toggle("drop-before", before);
+    el.classList.toggle("drop-after", !before);
+  });
+  el.addEventListener("dragleave", () => {
+    el.classList.remove("drop-before", "drop-after");
+  });
+  el.addEventListener("drop", (e) => {
+    if(!dragCardId || dragCardId === card.id || !dragFromDay) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const before = el.classList.contains("drop-before");
+    el.classList.remove("drop-before", "drop-after");
+    const fromArr = state.cards[dragFromDay] || [];
+    const idx = fromArr.findIndex(c => c.id === dragCardId);
+    if(idx === -1) return;
+    const [moved] = fromArr.splice(idx, 1);
+    moved.col = card.col || 0;
+    if(!state.cards[dayKey]) state.cards[dayKey] = [];
+    const destArr = state.cards[dayKey];
+    const targetIdx = destArr.findIndex(c => c.id === card.id);
+    const insertAt = targetIdx === -1 ? destArr.length : (before ? targetIdx : targetIdx + 1);
+    destArr.splice(insertAt, 0, moved);
+    dragCardId = null; dragFromDay = null;
+    persist(); render();
   });
 
   const del = document.createElement("span");
@@ -988,14 +1111,14 @@ function renderCard(card, dayKey){
   });
 
   if(card.type === "order"){
-    el.style.borderLeftColor = STATUS_COLOR[card.status] || "#9aa5b1";
+    el.style.borderLeftColor = STATUS_COLOR[card.status] || "#ffffff";
     el.title = [card.ordernr, card.klant].filter(Boolean).join(" · ");
     const line = document.createElement("div");
     line.className = "card-line";
 
     const dot = document.createElement("span");
     dot.className = "dot";
-    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#9aa5b1'};width:8px;height:8px;border-radius:50%;display:inline-block;`;
+    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);`;
     line.appendChild(dot);
 
     const text = document.createElement("span");
@@ -1018,39 +1141,48 @@ function renderCard(card, dayKey){
       if(card.kastenStatus){
         const kd = document.createElement("span");
         kd.className = "tag-dot";
-        kd.style.background = STATUS_COLOR[card.kastenStatus] || "#9aa5b1";
+        kd.style.background = STATUS_COLOR[card.kastenStatus] || "#ffffff";
+        kd.style.border = "1px solid rgba(28,36,48,.25)";
         t.appendChild(kd);
       }
       t.appendChild(document.createTextNode(card.kastenAantal));
-      line.appendChild(t);
+      text.appendChild(t);
     }
     (card.extras || []).forEach(ex => {
       const t = document.createElement("span");
       t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
       const ed = document.createElement("span");
       ed.className = "tag-dot";
-      ed.style.background = STATUS_COLOR[ex.status] || "#9aa5b1";
+      ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
+      ed.style.border = "1px solid rgba(28,36,48,.25)";
       t.appendChild(ed);
       t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
-      line.appendChild(t);
+      text.appendChild(t);
     });
     if(card.spoed){
       const arrow = document.createElement("span");
       arrow.className = "arrow-urgent";
       arrow.textContent = "↑";
       arrow.title = "Spoed";
-      line.appendChild(arrow);
+      text.appendChild(arrow);
     }
     if(card.eigenbezorging){
       const chip = document.createElement("span");
       chip.className = "deliv-chip";
       const cdot = document.createElement("span");
-      cdot.style.cssText = `background:${card.bezorgstatus==='green'?'var(--green)':card.bezorgstatus==='yellow'?'var(--yellow)':'var(--red)'};width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;`;
+      cdot.style.cssText = `background:${card.bezorgstatus==='green'?'var(--status-green)':card.bezorgstatus==='yellow'?'var(--yellow)':'var(--red)'};width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;`;
       chip.appendChild(cdot);
       const cname = document.createElement("span");
       cname.textContent = card.chauffeur || "chauffeur?";
       chip.appendChild(cname);
-      line.appendChild(chip);
+      text.appendChild(chip);
+    }
+    if(card.opmerkingen){
+      const remMark = document.createElement("span");
+      remMark.className = "opmerking-marker";
+      remMark.textContent = "*";
+      remMark.title = "Opmerking (open het bordje om te lezen)";
+      line.appendChild(remMark);
     }
     line.appendChild(del);
     el.appendChild(line);
@@ -1076,8 +1208,8 @@ function renderCard(card, dayKey){
     line.appendChild(del);
     el.appendChild(line);
   } else if(card.type === "note"){
-    el.style.background = card.color || "#fff4cf";
-    el.style.borderLeftColor = "#c9b866";
+    const noteColor = card.color || "#d1650f";
+    el.style.borderLeftColor = noteColor;
     el.title = card.text || "";
     const line = document.createElement("div");
     line.className = "card-line";
@@ -1085,6 +1217,7 @@ function renderCard(card, dayKey){
     txt.className = "card-note";
     txt.style.flex = "1 1 auto";
     txt.style.minWidth = "0";
+    txt.style.color = noteColor;
     txt.textContent = card.text || "";
     line.appendChild(txt);
     line.appendChild(del);
@@ -1180,13 +1313,14 @@ function openModal(dayKey, card){
   document.getElementById("f_eigenbezorging").checked = false;
   document.getElementById("f_chauffeur").value = "";
   document.getElementById("f_bezorgstatus").value = "red";
+  document.getElementById("f_opmerkingen").value = "";
   deliverySubfields.style.display = "none";
   document.getElementById("s_naam").value = "";
   document.getElementById("s_code").value = "";
   document.getElementById("s_ophalen").checked = false;
   document.getElementById("n_tekst").value = "";
   document.querySelectorAll("#noteColorPick label").forEach((x,i)=>x.classList.toggle("sel", i===0));
-  document.querySelector('#noteColorPick input[value="#fff4cf"]').checked = true;
+  document.querySelector('#noteColorPick input[value="#d1650f"]').checked = true;
 
   let type = "order";
   if(card){
@@ -1204,13 +1338,14 @@ function openModal(dayKey, card){
       deliverySubfields.style.display = card.eigenbezorging ? "" : "none";
       document.getElementById("f_chauffeur").value = card.chauffeur || "";
       document.getElementById("f_bezorgstatus").value = card.bezorgstatus || "red";
+      document.getElementById("f_opmerkingen").value = card.opmerkingen || "";
     } else if(card.type === "supplier"){
       document.getElementById("s_naam").value = card.naam || "";
       document.getElementById("s_code").value = card.code || "";
       document.getElementById("s_ophalen").checked = !!card.ophalen;
     } else if(card.type === "note"){
       document.getElementById("n_tekst").value = card.text || "";
-      const wantColor = card.color || "#fff4cf";
+      const wantColor = card.color || "#d1650f";
       document.querySelectorAll("#noteColorPick label").forEach(l => {
         const inp = l.querySelector("input");
         inp.checked = inp.value === wantColor;
@@ -1243,7 +1378,12 @@ document.getElementById("deleteCardBtn").addEventListener("click", () => {
 
 document.getElementById("saveCardBtn").addEventListener("click", () => {
   if(!editingDayKey) return;
-  let card = { id: editingCardId || ("c"+Date.now()+Math.random().toString(36).slice(2,7)), type: currentType };
+  let existingCol = 0;
+  if(editingCardId && editingDayKey && state.cards[editingDayKey]){
+    const existing = state.cards[editingDayKey].find(c => c.id === editingCardId);
+    if(existing) existingCol = existing.col || 0;
+  }
+  let card = { id: editingCardId || ("c"+Date.now()+Math.random().toString(36).slice(2,7)), type: currentType, col: existingCol };
 
   if(currentType === "order"){
     card.status = document.getElementById("f_status").value;
@@ -1258,6 +1398,7 @@ document.getElementById("saveCardBtn").addEventListener("click", () => {
     card.eigenbezorging = document.getElementById("f_eigenbezorging").checked;
     card.chauffeur = document.getElementById("f_chauffeur").value.trim();
     card.bezorgstatus = document.getElementById("f_bezorgstatus").value;
+    card.opmerkingen = document.getElementById("f_opmerkingen").value.trim();
     if(!card.ordernr && !card.klant){ showFormError("Vul minstens een ordernummer of klant in."); return; }
   } else if(currentType === "supplier"){
     card.naam = document.getElementById("s_naam").value.trim();
@@ -1286,22 +1427,23 @@ document.getElementById("legendBtn").addEventListener("click", () => {
   document.getElementById("legendPanel").classList.toggle("open");
 });
 document.getElementById("advanceBtn").addEventListener("click", () => {
-  const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+  const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
   mon.setUTCDate(mon.getUTCDate()+7);
   const wd = isoWeekData(mon);
-  state.anchorYear = wd.isoYear; state.anchorWeek = wd.isoWeek;
-  persist(); render();
+  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  persistView(); render();
 });
 document.getElementById("prevWeekBtn").addEventListener("click", () => {
-  const mon = mondayOfISOWeek(state.anchorYear, state.anchorWeek);
+  const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
   mon.setUTCDate(mon.getUTCDate()-7);
   const wd = isoWeekData(mon);
-  state.anchorYear = wd.isoYear; state.anchorWeek = wd.isoWeek;
-  persist(); render();
+  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  persistView(); render();
 });
 
 async function afterSignedIn(){
   document.getElementById("loginOverlay").classList.remove("open");
+  await loadView();
   await loadState();
   startPolling();
 }
