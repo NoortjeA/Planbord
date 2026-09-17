@@ -113,6 +113,26 @@
     align-items:center;
     gap:5px;
   }
+  .week-count-toggle{
+    display:flex;
+    border:1.5px solid var(--brand-dark);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .wct-btn{
+    font-family:inherit;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.2px;
+    padding:6px 9px;
+    border:none;
+    background:var(--paper);
+    color:var(--brand-dark);
+    cursor:pointer;
+  }
+  .wct-btn:not(:last-child){ border-right:1.5px solid var(--brand-dark); }
+  .wct-btn.active{ background:var(--brand-dark); color:#fff; }
   .status-dot{
     width:7px;height:7px;border-radius:50%;
     background:#9aa5b1;
@@ -610,6 +630,10 @@
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
     <button class="btn small" id="legendBtn">Legenda</button>
     <button class="btn small" id="logBtn">Log</button>
+    <div class="week-count-toggle" title="Wijzigt alleen jouw eigen weergave">
+      <button class="wct-btn" data-count="2">2 weken</button>
+      <button class="wct-btn" data-count="4">4 weken</button>
+    </div>
     <button class="btn" id="prevWeekBtn" title="Wijzigt alleen jouw eigen weergave">◀ Vorige</button>
     <button class="btn primary small" id="todayBtn" title="Wijzigt alleen jouw eigen weergave">Huidige week</button>
     <button class="btn" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Volgende ▶</button>
@@ -909,7 +933,7 @@ function defaultState(){
 }
 function defaultView(){
   const today = isoWeekData(new Date());
-  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek };
+  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek, weekCount: 4 };
 }
 
 let username = null; // set from the signed-in Microsoft account, no separate prompt needed
@@ -1025,7 +1049,8 @@ function setLive(ok){
 
 function getWeekColumns(){
   const cols = [];
-  for(let i=0;i<4;i++){
+  const n = view.weekCount || 4;
+  for(let i=0;i<n;i++){
     const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
     mon.setUTCDate(mon.getUTCDate() + i*7);
     const wd = isoWeekData(mon);
@@ -1037,6 +1062,12 @@ function getWeekColumns(){
 function render(){
   const board = document.getElementById("board");
   board.innerHTML = "";
+  const n = view.weekCount || 4;
+  board.style.gridTemplateColumns = `repeat(${n}, minmax(240px, 1fr))`;
+  board.style.minWidth = (n * 250) + "px";
+  document.querySelectorAll(".wct-btn").forEach(btn => {
+    btn.classList.toggle("active", parseInt(btn.dataset.count, 10) === n);
+  });
   const cols = getWeekColumns();
   cols.forEach(col => board.appendChild(renderWeekCol(col)));
 }
@@ -1050,7 +1081,7 @@ function renderWeekCol(col){
   head.className = "week-head";
   head.style.gridColumn = String(col.offset + 1);
   head.style.gridRow = "1";
-  if(col.offset < 3) head.style.borderRight = "2px solid var(--line)";
+  if(col.offset < (view.weekCount||4)-1) head.style.borderRight = "2px solid var(--line)";
   const endDate = new Date(col.monday); endDate.setUTCDate(endDate.getUTCDate()+4);
   let kastenTotal = 0;
   let kastenRemaining = 0;
@@ -1142,7 +1173,7 @@ function renderWeekCol(col){
     row.className = "day-row";
     row.style.gridColumn = String(col.offset + 1);
     row.style.gridRow = String(d + 2);
-    if(col.offset < 3) row.style.borderRight = "2px solid var(--line)";
+    if(col.offset < (view.weekCount||4)-1) row.style.borderRight = "2px solid var(--line)";
     row.innerHTML = `
       <div class="day-label${isToday ? ' is-today' : ''}">
         <div class="num">${date.getUTCDate()}</div>
@@ -1683,6 +1714,12 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   const today = isoWeekData(new Date());
   view.anchorYear = today.isoYear; view.anchorWeek = today.isoWeek;
   persistView(); render();
+});
+document.querySelectorAll(".wct-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    view.weekCount = parseInt(btn.dataset.count, 10);
+    persistView(); render();
+  });
 });
 
 async function afterSignedIn(){
