@@ -176,7 +176,7 @@
     margin:4px 0 5px;
   }
   .week-kasten-total{
-    font-size:11px;
+    font-size:12px;
     font-weight:800;
     color:var(--brand-dark);
     margin-top:3px;
@@ -1053,13 +1053,17 @@ function renderWeekCol(col){
   if(col.offset < 3) head.style.borderRight = "2px solid var(--line)";
   const endDate = new Date(col.monday); endDate.setUTCDate(endDate.getUTCDate()+4);
   let kastenTotal = 0;
+  let kastenRemaining = 0;
   for(let i=0;i<5;i++){
     const dk = new Date(col.monday); dk.setUTCDate(dk.getUTCDate()+i);
     const key = fmtDateKey(dk);
     (state.cards[key] || []).forEach(c => {
       if(c.type === "order" && c.kastenAantal){
         const n = parseInt(c.kastenAantal, 10);
-        if(!isNaN(n)) kastenTotal += n;
+        if(!isNaN(n)){
+          kastenTotal += n;
+          if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green") kastenRemaining += n;
+        }
       }
     });
   }
@@ -1069,7 +1073,7 @@ function renderWeekCol(col){
         <div class="week-num">Week ${col.isoWeek}</div>
         <div class="week-accent"></div>
         <div class="week-range">${fmtDMY(col.monday)} – ${fmtDMY(endDate)}</div>
-        ${kastenTotal > 0 ? `<div class="week-kasten-total">K: ${kastenTotal}</div>` : ""}
+        ${kastenTotal > 0 ? `<div class="week-kasten-total">K: ${kastenRemaining} / ${kastenTotal}</div>` : ""}
       </div>
     </div>
     <div class="notices" id="notices-${wk}"></div>
