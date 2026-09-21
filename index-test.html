@@ -1841,9 +1841,27 @@ function fmtDayLabel(dayKey){
 
 const STATUS_COLOR = { blue:"var(--status-blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--status-green)" };
 
+// Werkt alleen de randkleur van bestaande bordjes bij (deadline wel/niet gehaald volgens Magazijnplanning),
+// zonder het hele bord opnieuw op te bouwen — dat laatste (render()) zou een mededeling die je aan het typen
+// bent onderbreken, omdat het invoerveld dan wordt weggegooid en opnieuw aangemaakt.
+function refreshCardDeadlineBorders(){
+  const mzResult = (typeof window.getMagazijnResult === "function") ? window.getMagazijnResult() : null;
+  if(!mzResult || !mzResult.byOrder) return;
+  document.querySelectorAll(".card[data-card-id]").forEach(el => {
+    const mzOrder = mzResult.byOrder[el.dataset.cardId];
+    if(!mzOrder) return; // geen (getrackt) order-bordje — rand met rust laten
+    const deadlineMissed = !!(
+      (mzOrder.picken && mzOrder.picken.task && mzOrder.picken.task.warn) ||
+      (mzOrder.controle && mzOrder.controle.task && mzOrder.controle.task.warn)
+    );
+    el.style.borderLeftColor = deadlineMissed ? "var(--brand-yellow)" : "var(--brand-dark)";
+  });
+}
+
 function renderCard(card, dayKey){
   const el = document.createElement("div");
   el.className = "card";
+  el.dataset.cardId = card.id; // zodat de rand periodiek ververst kan worden zonder het hele bord te herbouwen
   el.draggable = true;
   el.addEventListener("dragstart", () => {
     dragCardId = card.id; dragFromDay = dayKey;
@@ -2411,7 +2429,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     productivity: 7,
     weekPattern: {0:0,1:1,2:2,3:2,4:2,5:2,6:0},
     exceptions: [],
-    orders: []
+    orders: [],
+    manualOrder: false // true zodra de rij handmatig versleept is — zie findNextCandidate hieronder
   };
 
   function nextMonday(){
@@ -2571,21 +2590,33 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 
     var cur = new Date(startDate);
 
-    // Volgende order om aan te snijden op dag `iso`: spoed (als die al gepickt mag zijn) gaat voor alles,
-    // daarna de normale orders in hun huidige volgorde, daarna pas "wit/nieuw" — orders die nog niet gepickt
-    // zijn worden overgeslagen (niet verwijderd) en op een latere dag opnieuw geprobeerd.
+    // Volgende order om aan te snijden op dag `iso`: een kast met kasten-status geel staat al in de werkplaats
+    // en is daar halverwege mee bezig — die moet sowieso als eerste afgemaakt worden, zelfs vóór spoed. Daarna
+    // spoed (als die al gepickt mag zijn), dan de normale orders in hun huidige volgorde, dan pas "wit/nieuw".
+    //   - Staat de rij nog op "automatisch" (net opnieuw bepaald via de knop): binnen een groep mag een order
+    //     die nog niet zover is worden overgeslagen voor een latere die al wel kan — zo wordt de beschikbare
+    //     tijd zo goed mogelijk benut. Dit is de standaard voor de hele rij.
+    //   - Is de rij handmatig versleept: dan houden we de volgorde binnen elke groep strikt aan. Is de
+    //     eerstvolgende, nog niet gestarte order in die groep nog niet zover, dan springen we niet door naar
+    //     een latere order — die groep levert dan voor vandaag niets op, en dat gat is bewust zichtbaar (in de
+    //     grafiek en het dag-voor-dag-overzicht), zodat er op het picken van die order gestuurd kan worden.
+    //     Dit is bewust de uitzondering (voor de paar orders die je zelf verslepen), niet de regel.
     function findNextCandidate(iso){
       var tierChecks = [
-        function(o){ return o.spoed; },
-        function(o){ return !o.spoed && !o.isWit; },
-        function(o){ return o.isWit; }
+        function(o){ return o.status === 'yellow'; },
+        function(o){ return o.status !== 'yellow' && o.spoed; },
+        function(o){ return o.status !== 'yellow' && !o.spoed && !o.isWit; },
+        function(o){ return o.status !== 'yellow' && o.isWit; }
       ];
       for (var t=0; t<tierChecks.length; t++){
         for (var i=0; i<orders.length; i++){
           var o = orders[i];
           if (o.startDate !== null) continue;
           if (!tierChecks[t](o)) continue;
-          if (o.pickEligibleIso > iso) continue;
+          if (o.pickEligibleIso > iso){
+            if (state.manualOrder) break; // eerstvolgende in de rij is nog niet zover — wacht, spring niet door
+            continue; // automatische volgorde: gaatje opvullen met een latere order die al wel kan
+          }
           return i;
         }
       }
@@ -2758,6 +2789,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         var toIdx = state.orders.indexOf(order);
         var insertAt = before ? toIdx : toIdx + 1;
         state.orders.splice(insertAt, 0, draggedOrder);
+        state.manualOrder = true; // vanaf nu strikt deze volgorde aanhouden, gaten worden zichtbaar
         draggedOrder = null;
         renderOrders(); recalc();
       });
@@ -2805,8 +2837,10 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   var STATUS_BAR_KLEUR = { blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)' };
 
   // Geeft een kopie van de orderlijst terug, gesorteerd op startdatum (vroegst eerst, nog niet
-  // ingeplande orders achteraan) — puur voor de weergave in grafiek en overzicht. De volgorde in
-  // result.orders zelf blijft ongewijzigd, want de dag-voor-dag log verwijst naar posities daarin.
+  // ingeplande orders achteraan). Wordt alleen gebruikt om ná het klikken op "Volgorde opnieuw bepalen"
+  // de rij zelf in de berekende bouwvolgorde te zetten — de grafiek en het overzicht tonen daarna gewoon
+  // diezelfde rij-volgorde (result.orders), zonder nog een keer apart te sorteren. Zo kunnen de rij en de
+  // grafiek nooit meer uit elkaar lopen.
   function chronologicalOrders(orders){
     return orders.slice().sort(function(a,b){
       if (a.startDate !== b.startDate){
@@ -2826,7 +2860,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   function renderGantt(result){
     var el = document.getElementById('gantt');
     el.innerHTML = '';
-    var orders = chronologicalOrders(result.orders.filter(function(o){ return o.amount>0; }));
+    var orders = result.orders.filter(function(o){ return o.amount>0; });
     if (!orders.length) return;
 
     var totalDays = WINDOW_DAYS;
@@ -2926,7 +2960,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   function renderSummary(result){
     var body = document.getElementById('summaryBody');
     body.innerHTML = '';
-    chronologicalOrders(result.orders).forEach(function(o){
+    result.orders.forEach(function(o){
       var tr = document.createElement('tr');
       var workingDays = o.dailyLog.length;
       tr.innerHTML =
@@ -3007,6 +3041,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 
   // Zet de volgorde van de orderlijst volledig terug naar de volgorde op het planbord
   // (dag voor dag, en binnen een dag op plek van het bordje) — overschrijft elke handmatige herschikking.
+  // Daarna wordt meteen doorgerekend wat de slimste bouwvolgorde is (met gaatjes opvullen), en wordt de rij
+  // zelf in díe volgorde gezet — zo lopen de rij en de grafiek altijd gelijk.
   function resetOrderQueueFromPlanbord(){
     var pb = (typeof window.getPlanbordState === 'function') ? window.getPlanbordState() : null;
     if (!pb || !pb.cards) return; // planbord nog niet geladen — niets om op te resetten
@@ -3016,6 +3052,15 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       return a.dayIdx - b.dayIdx;
     });
     state.orders = found.map(orderRecordFromCandidate);
+    state.manualOrder = false; // eerst automatisch laten uitrekenen wat de handigste volgorde is
+
+    var berekend = simulate();
+    var bySourceId = {};
+    state.orders.forEach(function(o){ bySourceId[o.sourceId] = o; });
+    state.orders = chronologicalOrders(berekend.orders)
+      .map(function(o){ return bySourceId[o.sourceId]; })
+      .filter(Boolean);
+
     renderOrders();
     recalc();
   }
@@ -3671,9 +3716,10 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   }
 
   // Het Planbord toont een bordje anders zodra dat bordje (volgens Magazijnplanning) zijn deadline niet meer
-  // haalt — na elke herberekening laten we het Planbord dus ook opnieuw tekenen.
+  // haalt — na elke herberekening werken we dus de randen bij (niet het hele bord opnieuw tekenen, dat zou
+  // een mededeling in wording onderbreken).
   function mzRefreshPlanbordCards(){
-    if (typeof render === 'function') render();
+    if (typeof refreshCardDeadlineBorders === 'function') refreshCardDeadlineBorders();
   }
 
   async function mzInit(){
