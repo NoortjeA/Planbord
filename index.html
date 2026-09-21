@@ -3165,45 +3165,54 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         };
         byOrder[c.id] = orderInfo;
 
-        if(mzAlGepickt(c)){
+        // Een bordje met status groen ("gereed") is voldaan — daar hoeft het magazijn niets meer voor te doen.
+        // Enige uitzondering: bij eigen vervoer moet het nog wel worden ingeladen, dat blijft hieronder gewoon
+        // meelopen via de dealer-bundel.
+        var klaar = c.status === 'green';
+        if(klaar){
           orderInfo.picken = { done: true };
+          orderInfo.controle = { done: true };
         } else {
-          var pickNaturalDay = mzPickDay(c, dayKey, kastenAantal);
-          var pickTask = {
-            sourceId: c.id, label: label, type: 'Picken', minutes: mzState.pickMinutes,
-            naturalDay: pickNaturalDay, spoed: c.spoed, deadlineDay: dayKey
-          };
-          flatTasks.push(pickTask);
-          orderInfo.picken = { task: pickTask };
-        }
-
-        if(kastenAantal <= 0){
-          var packTask = {
-            sourceId: c.id, label: label, type: 'Controle + inpak', minutes: mzState.packMinutes,
-            naturalDay: dayKey, spoed: c.spoed, deadlineDay: dayKey
-          };
-          flatTasks.push(packTask);
-          orderInfo.controle = { task: packTask };
-        } else {
-          var bpOrder = bpOrders.filter(function(o){ return o.sourceId === c.id; })[0];
-          orderInfo.bouw = bpOrder ? { start: bpOrder.startDate, finish: bpOrder.finishDate } : null;
-          if(bpOrder && bpOrder.finishDate){
-            var checkDay = mzAddDaysIso(bpOrder.finishDate, 1);
-            var checkTask = {
-              sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
-              naturalDay: checkDay, spoed: c.spoed, deadlineDay: dayKey
+          if(mzAlGepickt(c)){
+            orderInfo.picken = { done: true };
+          } else {
+            var pickNaturalDay = mzPickDay(c, dayKey, kastenAantal);
+            var pickTask = {
+              sourceId: c.id, label: label, type: 'Picken', minutes: mzState.pickMinutes,
+              naturalDay: pickNaturalDay, spoed: c.spoed, deadlineDay: dayKey
             };
-            flatTasks.push(checkTask);
-            orderInfo.controle = { task: checkTask };
-          } else if(c.kastenStatus === 'green'){
-            var checkTask2 = {
-              sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
+            flatTasks.push(pickTask);
+            orderInfo.picken = { task: pickTask };
+          }
+
+          if(kastenAantal <= 0){
+            var packTask = {
+              sourceId: c.id, label: label, type: 'Controle + inpak', minutes: mzState.packMinutes,
               naturalDay: dayKey, spoed: c.spoed, deadlineDay: dayKey
             };
-            flatTasks.push(checkTask2);
-            orderInfo.controle = { task: checkTask2 };
+            flatTasks.push(packTask);
+            orderInfo.controle = { task: packTask };
           } else {
-            orderInfo.controle = { pending: true, note: (bpOrder && bpOrder.startDate) ? ('bouw gepland vanaf ' + bpOrder.startDate) : 'wacht op bouw' };
+            var bpOrder = bpOrders.filter(function(o){ return o.sourceId === c.id; })[0];
+            orderInfo.bouw = bpOrder ? { start: bpOrder.startDate, finish: bpOrder.finishDate } : null;
+            if(bpOrder && bpOrder.finishDate){
+              var checkDay = mzAddDaysIso(bpOrder.finishDate, 1);
+              var checkTask = {
+                sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
+                naturalDay: checkDay, spoed: c.spoed, deadlineDay: dayKey
+              };
+              flatTasks.push(checkTask);
+              orderInfo.controle = { task: checkTask };
+            } else if(c.kastenStatus === 'green'){
+              var checkTask2 = {
+                sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
+                naturalDay: dayKey, spoed: c.spoed, deadlineDay: dayKey
+              };
+              flatTasks.push(checkTask2);
+              orderInfo.controle = { task: checkTask2 };
+            } else {
+              orderInfo.controle = { pending: true, note: (bpOrder && bpOrder.startDate) ? ('bouw gepland vanaf ' + bpOrder.startDate) : 'wacht op bouw' };
+            }
           }
         }
 
