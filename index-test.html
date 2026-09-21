@@ -2834,7 +2834,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     headline.appendChild(kicker);
   }
 
-  var STATUS_BAR_KLEUR = { blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)' };
+  var STATUS_BAR_KLEUR = { '':'var(--ink-faint)', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)' };
 
   // Geeft een kopie van de orderlijst terug, gesorteerd op startdatum (vroegst eerst, nog niet
   // ingeplande orders achteraan). Wordt alleen gebruikt om ná het klikken op "Volgorde opnieuw bepalen"
@@ -3065,6 +3065,11 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     recalc();
   }
 
+  // Onthoudt (alleen lokaal, niet opgeslagen) hoe vaak een order op rij niet meer gevonden is op het planbord —
+  // zodat een order niet meteen uit de rij verdwijnt bij één trage of gemiste ververs-cyclus (bijv. door een
+  // hapering in de verbinding, of terwijl iemand anders tegelijk aan het bewerken is).
+  var missingSince = {};
+
   function syncOrdersFromPlanbord(){
     var pb = (typeof window.getPlanbordState === 'function') ? window.getPlanbordState() : null;
     if (!pb || !pb.cards) return false; // planbord nog niet geladen — bestaande orderlijst met rust laten
@@ -3075,8 +3080,17 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     var existing = state.orders || [];
     var changed = false;
 
-    // drop orders no longer qualifying (deleted, of gereed/uitgeleverd)
-    var kept = existing.filter(function(o){ return foundById.hasOwnProperty(o.sourceId); });
+    // pas een order echt verwijderen als hij een paar keer ACHTER ELKAAR niet gevonden wordt — één gemiste
+    // cyclus is meestal maar tijdelijk en mag de order niet meteen uit de rij laten verdwijnen.
+    var MISSING_TRIES = 3;
+    var kept = existing.filter(function(o){
+      if (foundById.hasOwnProperty(o.sourceId)){
+        delete missingSince[o.sourceId];
+        return true;
+      }
+      missingSince[o.sourceId] = (missingSince[o.sourceId] || 0) + 1;
+      return missingSince[o.sourceId] < MISSING_TRIES;
+    });
     if (kept.length !== existing.length) changed = true;
 
     // update fields — de volgorde zelf raken we hier nooit aan; alleen de knop "volgorde opnieuw bepalen" mag
