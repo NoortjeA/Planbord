@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planbord (SharePoint)</title>
+<title>Planbord — TESTVERSIE (geen SharePoint)</title>
 <style>
   :root{
     --board-bg:#eef1f4;
@@ -868,6 +868,11 @@
 </head>
 <body>
 
+<div style="background:#b30000; color:#fff; text-align:center; font-weight:800; font-size:13px; padding:6px 10px; letter-spacing:.3px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;">
+  <span>TESTVERSIE — geen Microsoft-inlog, geen echte SharePoint-data. Alles hier is voorbeelddata, los van het echte Planbord.</span>
+  <button type="button" id="testApplyStatusBtn" style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.2px; cursor:pointer; border-radius:4px; border:1.5px solid #fff; background:transparent; color:#fff; padding:4px 9px;" title="Zet de kasten-status (en bijpassende bordje-status) van de orders in bulk per week, puur om de bouwplanning te testen: week 39: 80% groen / 2 stuks geel / rest rood — week 40: 10% groen / 10% blauw / rest rood — week 41 en verder: alles blauw.">🎲 Testdata: statussen per week zetten</button>
+</div>
+
 <div class="brand-bar">
   <img class="brand-logo" src="data:image/png;base64,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" alt="Tom-Lock">
   <span class="brand-bar-label">Bedrijfswageninrichting</span>
@@ -1239,89 +1244,185 @@
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 <script>
 /* ============================================================
-   SHAREPOINT / MICROSOFT ENTRA ID CONFIGURATIE
+   TESTVERSIE — GEEN MICROSOFT-INLOG, GEEN SHAREPOINT.
+   Deze hele sectie doet alsof (nep-opslag in de browser zelf, via
+   localStorage) zodat je meteen kunt klikken zonder in te loggen.
+   De echte index.html met de SharePoint-koppeling is hier niet voor gebruikt.
    ============================================================ */
-const SP_CONFIG = {
-  clientId: "75a374a6-4a2d-4c55-87c1-bc85710e69c9",
-  tenantId: "e4d51aa0-7da5-4035-afbd-87881515b1b6",
-  siteId:   "tomlock.sharepoint.com,8b024d6a-5001-4acd-b0e7-2db7b4b560cb,bcc7504f-e522-401c-9f69-1aec5fee7552",
-  listId:   "495e22c8-5e3e-4925-a8ac-db5c987f9c61"
-};
-const GRAPH_SCOPES = ["Sites.ReadWrite.All"];
-const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const SHARED_KEY = "planbord-data-v1";
 let msalInstance = null;
-let msalAccount = null;
+let msalAccount = { name: "Testgebruiker", username: "test@voorbeeld.local", homeAccountId: "test-account" };
 window.planbordSignedInPromise = new Promise(resolve => { window._resolvePlanbordSignedIn = resolve; });
 
-async function initMsal(){
-  if(typeof msal === "undefined"){
-    throw new Error("De Microsoft-inlogbibliotheek kon niet geladen worden. Ververs de pagina, of controleer of een advertentieblokker het script blokkeert.");
-  }
-  msalInstance = new msal.PublicClientApplication({
-    auth: {
-      clientId: SP_CONFIG.clientId,
-      authority: "https://login.microsoftonline.com/" + SP_CONFIG.tenantId,
-      redirectUri: window.location.origin + window.location.pathname
-    },
-    cache: { cacheLocation: "sessionStorage" }
+const MOCK_LS_KEY = "planbord-test-mockstore-v2";
+function mockLoadDb(){
+  try{ const raw = localStorage.getItem(MOCK_LS_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return null;
+}
+function mockSaveDb(db){ try{ localStorage.setItem(MOCK_LS_KEY, JSON.stringify(db)); }catch(e){} }
+
+function mockIso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function mockAddDays(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return mockIso(d); }
+// Voor bordjes op het planbord: het bord toont alleen ma t/m vr, dus schuif in het weekend door naar de eerstvolgende maandag.
+function mockBoardDay(n){
+  const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n);
+  const day = d.getDay();
+  if(day === 6) d.setDate(d.getDate()+2);
+  else if(day === 0) d.setDate(d.getDate()+1);
+  return mockIso(d);
+}
+
+function buildSeedData(){
+  const cards = {};
+  // col blijft altijd 0: net als bij een echt nieuw bordje via "+ bordje" — kaarten stapelen dan netjes
+  // onder elkaar in dezelfde kolom, i.p.v. de 3 vaste kolommen van het bord te overschrijden (en zo onzichtbaar te worden).
+  function put(dayKey, card){ if(!cards[dayKey]) cards[dayKey] = []; card.id = "seed"+Math.random().toString(36).slice(2,9); card.col = 0; cards[dayKey].push(card); }
+
+  // Bouw-order, nog geen "datum spullen binnen" ingevuld: valt terug op de inschatting (planborddag min 2 weken).
+  put(mockBoardDay(21), { type:"order", status:"red", ordernr:"5301", klant:"Meubelstad", aanwezigDatum:"", gewensteLeverdatum:"", kastenAantal:"8", kastenStatus:"red", extras:[], spoed:false, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Nog geen datum spullen binnen ingevuld — gebruikt de schatting van 2 weken voor planborddag." });
+
+  // Bouw-order waarvan de spullen al binnen zijn: mag nu al gepickt/gebouwd worden.
+  put(mockBoardDay(9), { type:"order", status:"red", ordernr:"5302", klant:"Interieur Van Dijk", aanwezigDatum:mockAddDays(-3), gewensteLeverdatum:"", kastenAantal:"6", kastenStatus:"red", extras:[], spoed:false, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Spullen al 3 dagen binnen — mag gebouwd worden." });
+
+  // Bouw-order: kasten-status handmatig al op "gepickt" gezet, ook al ligt de datum spullen binnen nog in de toekomst.
+  put(mockBoardDay(19), { type:"order", status:"yellow", ordernr:"5303", klant:"Woonhuis Bakker", aanwezigDatum:mockAddDays(15), gewensteLeverdatum:"", kastenAantal:"5", kastenStatus:"yellow", extras:[{type:"fd",code:"12",status:"yellow"}], spoed:false, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Kasten-status staat al op 'gepickt' (geel) — telt dus nu al mee, ook al is de datum pas over 2 weken." });
+
+  // Spoedorder: mag direct op de dag van aankomst gebouwd worden en heeft voorrang.
+  put(mockBoardDay(4), { type:"order", status:"red", ordernr:"5304", klant:"Spoedklant De Groot", aanwezigDatum:mockAddDays(0), gewensteLeverdatum:"", kastenAantal:"3", kastenStatus:"red", extras:[], spoed:true, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Spoed — spullen vandaag binnen, mag vandaag al gepickt en als eerste gebouwd worden." });
+
+  // Gloednieuwe order (wit): wijkt in de bouwplanning voor alles.
+  put(mockBoardDay(26), { type:"order", status:"", ordernr:"5305", klant:"Nieuwe Klant", aanwezigDatum:"", gewensteLeverdatum:"", kastenAantal:"4", kastenStatus:"", extras:[], spoed:false, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Status 'wit — nieuw': laagste prioriteit in de bouwplanning." });
+
+  // Twee niet-bouw orders, eigen bezorging, twee verschillende dealers, zelfde dag — om de bezorgsuggesties-fix te laten zien.
+  put(mockBoardDay(2), { type:"order", status:"red", ordernr:"5306", klant:"Dealer Noord", aanwezigDatum:"", gewensteLeverdatum:"", kastenAantal:"", kastenStatus:"", extras:[], spoed:false, eigenbezorging:true, chauffeur:"", bezorgstatus:"red", opmerkingen:"" });
+  put(mockBoardDay(2), { type:"order", status:"red", ordernr:"5307", klant:"Dealer Zuid", aanwezigDatum:"", gewensteLeverdatum:"", kastenAantal:"", kastenStatus:"", extras:[], spoed:false, eigenbezorging:true, chauffeur:"", bezorgstatus:"red", opmerkingen:"" });
+
+  // Niet-bouw order zonder eigen bezorging (externe vervoerder) — hoort niet tussen de bezorgsuggesties te staan.
+  put(mockBoardDay(5), { type:"order", status:"red", ordernr:"5308", klant:"Dealer West", aanwezigDatum:"", gewensteLeverdatum:"", kastenAantal:"", kastenStatus:"", extras:[], spoed:false, eigenbezorging:false, chauffeur:"", bezorgstatus:"red", opmerkingen:"Externe vervoerder — geen eigen bezorging." });
+
+  addBulkOrders(cards, put);
+
+  return { notices:{}, cards:cards };
+}
+
+function mockWeekStartMonday(){
+  const d = new Date(); d.setHours(0,0,0,0);
+  const day = d.getDay();
+  const diffToMonday = (day === 0) ? -6 : (1 - day);
+  d.setDate(d.getDate() + diffToMonday);
+  return d;
+}
+function mockWeekDay(weekIdx, dayOffset){
+  const base = mockWeekStartMonday();
+  base.setDate(base.getDate() + weekIdx*7 + dayOffset);
+  return mockIso(base);
+}
+function mockAddDaysFromIso(iso, n){
+  const parts = iso.split('-').map(Number);
+  const d = new Date(parts[0], parts[1]-1, parts[2]);
+  d.setDate(d.getDate()+n);
+  return mockIso(d);
+}
+
+// Bij een order MET kasten mogen bordje-status en kasten-status niet los van elkaar staan — in het echt komen
+// alleen deze 7 combinaties voor: wit/wit, blauw/blauw, rood/rood, geel/rood, geel/geel, geel/groen, groen/groen.
+// Gebruikt door zowel de voorbeeld-orders bij het opstarten als de testknop "Statussen per week zetten".
+function mockPickKastenCombo(){
+  var r = Math.random();
+  if(r < 0.15) return { status:'',      kastenStatus:''      }; // 1: nieuw
+  if(r < 0.30) return { status:'blue',  kastenStatus:'blue'  }; // 2: onderweg
+  if(r < 0.50) return { status:'red',   kastenStatus:'red'   }; // 3: aanwezig, wacht op picken
+  if(r < 0.65) return { status:'yellow',kastenStatus:'red'   }; // 4: gepickt, wacht op bouwen
+  if(r < 0.80) return { status:'yellow',kastenStatus:'yellow'}; // 5: wordt nu gebouwd
+  if(r < 0.92) return { status:'yellow',kastenStatus:'green' }; // 6: gebouwd, wacht op controle
+  return           { status:'green', kastenStatus:'green' };    // 7: afgerond
+}
+
+// Extra voorbeeldorders om de bouwplanning eens flink te vullen: gemiddeld 5 bordjes per dag,
+// zo'n 3/4 met kasten en 1/4 zonder, met het totaal te bouwen kasten per week wisselend tussen 20 en 60
+// (dus soms ruim binnen de capaciteit, soms er bijna tegenaan).
+function addBulkOrders(cards, put){
+  const klanten = ["Wooncentrum De Vries","Interieurbouw Prins","Keuken & Kast Jansen","BinnenWerk Peters",
+    "Stijlvol Wonen","KastenCompany","Meubelhuis Oost","Interieur Zeeland","Van der Heijden Interieur",
+    "Design & Wonen","Kastenmakerij Noord","Wooncomfort Zuid"];
+  const weekKastenTarget = [24, 58, 20, 46]; // wisselend tussen 20 en 60, incl. dicht tegen de (week-)capaciteit aan
+  let ordernr = 5401;
+
+  weekKastenTarget.forEach(function(target, weekIdx){
+    // eerst bepalen hoeveel bordjes er deze week komen, en welke daarvan kasten krijgen (~3/4)
+    const dayCards = []; // { dayOffset, heeftKasten }
+    for(let dayOffset=0; dayOffset<5; dayOffset++){
+      const aantalVandaag = 3 + Math.floor(Math.random()*5); // 3..7, gemiddeld 5
+      for(let i=0; i<aantalVandaag; i++){
+        dayCards.push({ dayOffset: dayOffset, heeftKasten: Math.random() < 0.75 });
+      }
+    }
+    let metKasten = dayCards.filter(function(c){ return c.heeftKasten; });
+    if(metKasten.length === 0 && dayCards.length){ dayCards[0].heeftKasten = true; metKasten = [dayCards[0]]; }
+
+    // het week-doel verdelen over de "met kasten"-bordjes, elk minstens 1
+    let remaining = target;
+    metKasten.forEach(function(c, i){
+      const isLast = (i === metKasten.length - 1);
+      let share = isLast ? remaining : Math.max(1, Math.round(remaining / (metKasten.length - i)));
+      share = Math.max(1, Math.min(share, remaining - (metKasten.length - i - 1)));
+      c.kastenAantal = share;
+      remaining -= share;
+    });
+
+    dayCards.forEach(function(c){
+      const dayKey = mockWeekDay(weekIdx, c.dayOffset);
+      const klant = klanten[Math.floor(Math.random()*klanten.length)];
+      let aanwezigDatum = "";
+      if(Math.random() < 0.4){
+        let leadDays = c.heeftKasten ? (10 + Math.floor(Math.random()*10)) : (5 + Math.floor(Math.random()*8));
+        if(Math.random() < 0.1) leadDays = -Math.floor(Math.random()*5); // af en toe expres te laat, om de waarschuwing te tonen
+        aanwezigDatum = mockAddDaysFromIso(dayKey, -leadDays);
+      }
+      // bij orders met kasten mogen bordje-status en kasten-status niet los van elkaar gekozen worden —
+      // alleen de 7 combinaties die in het echt voorkomen (zie mockPickKastenCombo)
+      const combo = c.heeftKasten ? mockPickKastenCombo() : { status: ['','red','red','blue','yellow'][Math.floor(Math.random()*5)], kastenStatus: '' };
+      put(dayKey, {
+        type: "order", status: combo.status, ordernr: String(ordernr++), klant: klant,
+        aanwezigDatum: aanwezigDatum, gewensteLeverdatum: "",
+        kastenAantal: c.heeftKasten ? String(c.kastenAantal) : "",
+        kastenStatus: combo.kastenStatus,
+        extras: [], spoed: Math.random() < 0.05,
+        eigenbezorging: Math.random() < 0.3, chauffeur: "", bezorgstatus: "red", opmerkingen: ""
+      });
+    });
   });
-  await msalInstance.initialize();
-  const existing = msalInstance.getAllAccounts();
-  if(existing.length > 0){
-    msalAccount = existing[0];
-    return true;
-  }
-  return false;
 }
 
-async function loginWithPopup(){
-  const result = await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
-  msalAccount = result.account;
+let mockDb = mockLoadDb();
+if(!mockDb){
+  mockDb = { nextId: 1, items: {} };
+  const seedId = "item" + (mockDb.nextId++);
+  mockDb.items[SHARED_KEY] = { id: seedId, fields: { Title: SHARED_KEY, Data: JSON.stringify(buildSeedData()) } };
+  mockSaveDb(mockDb);
 }
 
-async function getGraphToken(){
-  const req = { scopes: GRAPH_SCOPES, account: msalAccount };
-  try{
-    const res = await msalInstance.acquireTokenSilent(req);
-    return res.accessToken;
-  }catch(e){
-    const res = await msalInstance.acquireTokenPopup(req);
-    return res.accessToken;
-  }
+async function initMsal(){
+  return true; // "al ingelogd" — geen echte Microsoft-koppeling in deze testversie
 }
+async function loginWithPopup(){ /* niet nodig in de testversie */ }
+async function getGraphToken(){ return "test-token"; }
 
 async function graphGetItemByKey(key){
-  const token = await getGraphToken();
-  const url = `${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items?expand=fields`;
-  const res = await fetch(url, { headers: { Authorization: "Bearer " + token } });
-  if(!res.ok) throw new Error("Graph GET faalde: " + res.status);
-  const data = await res.json();
-  return (data.value || []).find(it => it.fields && it.fields.Title === key) || null;
+  return mockDb.items[key] || null;
 }
-
 async function graphCreateItem(key, json){
-  const token = await getGraphToken();
-  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items`, {
-    method: "POST",
-    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: { Title: key, Data: json } })
-  });
-  if(!res.ok) throw new Error("Graph POST faalde: " + res.status);
-  return (await res.json()).id;
+  const id = "item" + (mockDb.nextId++);
+  mockDb.items[key] = { id: id, fields: { Title: key, Data: json } };
+  mockSaveDb(mockDb);
+  return id;
 }
-
 async function graphUpdateItem(itemId, json){
-  const token = await getGraphToken();
-  const res = await fetch(`${GRAPH_BASE}/sites/${SP_CONFIG.siteId}/lists/${SP_CONFIG.listId}/items/${itemId}/fields`, {
-    method: "PATCH",
-    headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-    body: JSON.stringify({ Data: json })
-  });
-  if(!res.ok) throw new Error("Graph PATCH faalde: " + res.status);
+  const found = Object.values(mockDb.items).find(it => it.id === itemId);
+  if(found) found.fields.Data = json;
+  mockSaveDb(mockDb);
 }
 </script>
 <script>
@@ -1507,6 +1608,72 @@ function render(){
   });
   const cols = getWeekColumns();
   cols.forEach(col => board.appendChild(renderWeekCol(col)));
+}
+
+// ALLEEN VOOR DEZE TESTVERSIE: zet in bulk de kasten-status (en de bijpassende bordje-status) van de huidige
+// orders met kasten, per ISO-week, zodat de bouwplanning met een realistische mix getest kan worden.
+// Laat de bordjes zelf (dag, positie, inhoud) met rust — past alleen statussen aan.
+function testApplyStatusDistribution(){
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  // Bordje-status en kasten-status mogen nooit los van elkaar staan — hou je aan de 7 combinaties die in het
+  // echt voorkomen (zie mockPickKastenCombo): blauwe kasten alleen bij een blauw bordje, groene kasten alleen
+  // bij een geel of groen bordje, enzovoort.
+  function applyKastenStatus(card, kStatus){
+    card.kastenStatus = kStatus;
+    if(kStatus === "blue") card.status = "blue";
+    else if(kStatus === "red") card.status = Math.random() < 0.5 ? "red" : "yellow";
+    else if(kStatus === "yellow") card.status = "yellow";
+    else if(kStatus === "green") card.status = Math.random() < 0.5 ? "yellow" : "green";
+  }
+
+  const byWeek = {}; // "2026-W39" -> bordjes met kasten die week
+  Object.keys(state.cards).forEach(dayKey => {
+    (state.cards[dayKey] || []).forEach(c => {
+      if(c.type !== "order") return;
+      const amt = parseInt(c.kastenAantal, 10);
+      if(isNaN(amt) || amt <= 0) return;
+      const dp = dayKey.split("-").map(Number);
+      const wd = isoWeekData(new Date(dp[0], dp[1]-1, dp[2]));
+      const wk = wd.isoYear + "-W" + wd.isoWeek;
+      if(!byWeek[wk]) byWeek[wk] = [];
+      byWeek[wk].push(c);
+    });
+  });
+
+  Object.keys(byWeek).forEach(wk => {
+    const weekNum = Number(wk.split("-W")[1]);
+    const cards = shuffle(byWeek[wk].slice());
+    const n = cards.length;
+    if(weekNum === 39){
+      const nGreen = Math.round(n * 0.8);
+      const nYellow = Math.min(2, n - nGreen);
+      cards.forEach((c, i) => {
+        if(i < nGreen) applyKastenStatus(c, "green");
+        else if(i < nGreen + nYellow) applyKastenStatus(c, "yellow");
+        else applyKastenStatus(c, "red");
+      });
+    } else if(weekNum === 40){
+      const nGreen = Math.round(n * 0.1);
+      const nBlue = Math.round(n * 0.1);
+      cards.forEach((c, i) => {
+        if(i < nGreen) applyKastenStatus(c, "green");
+        else if(i < nGreen + nBlue) applyKastenStatus(c, "blue");
+        else applyKastenStatus(c, "red");
+      });
+    } else if(weekNum >= 41){
+      cards.forEach(c => applyKastenStatus(c, "blue"));
+    }
+    // weken vóór 39 laten we ongemoeid
+  });
+
+  persist();
+  render();
 }
 
 function renderWeekCol(col){
@@ -2174,6 +2341,9 @@ document.querySelectorAll(".wct-btn").forEach(btn => {
     view.weekCount = parseInt(btn.dataset.count, 10);
     persistView(); render();
   });
+});
+document.getElementById("testApplyStatusBtn").addEventListener("click", () => {
+  testApplyStatusDistribution();
 });
 
 async function afterSignedIn(){
@@ -2939,7 +3109,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     renderExceptions();
     syncOrdersFromPlanbord();
     renderOrders();
-    recalcView(); // alleen berekenen/tonen bij het openen — niet ongevraagd terugschrijven naar SharePoint
+    recalcView(); // alleen berekenen/tonen bij het openen — niet ongevraagd terugschrijven
     setInterval(pollBP, 4000);
     setInterval(function(){
       if(dragInProgress) return;
