@@ -3243,13 +3243,14 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   // Vanaf welke dag mag deze order gepickt worden? Kasten-status (of algemene status) ROOD betekent "de spullen
   // zijn er al" — dat is een vaststaand feit, geen inschatting, dus dan telt vandaag als leverdatum. Zonder dat
   // feit: de opgegeven "spullen binnen"-datum, of bij ontbreken daarvan een inschatting (planborddag min 14
-  // dagen bij bouw-orders, min 7 dagen zonder kasten) — en is die datum al verstreken, dan morgen.
+  // dagen bij bouw-orders, min 7 dagen zonder kasten) — en is die datum al verstreken, dan de eerstvolgende
+  // werkdag (op basis van de beschikbare magazijn-uren, geen weekend of vrije dag).
   function mzLeverdatum(c, dayKey, kastenAantal){
     if(c.status === 'red' || c.kastenStatus === 'red') return mzTodayIso();
     var schatting = mzAddDaysIso(dayKey, -(kastenAantal > 0 ? 14 : 7));
     var lever = c.aanwezigDatum ? c.aanwezigDatum : schatting;
     var vandaag = mzTodayIso();
-    if(lever < vandaag) lever = mzAddDaysIso(vandaag, 1);
+    if(lever < vandaag) lever = mzVolgendeWerkdag(vandaag, mzIsWerkdag);
     return lever;
   }
 
@@ -3293,6 +3294,16 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   function mzIsWerkdag(weekday){ return (Number(mzState.weekPattern[weekday])||0) > 0; }
   function bpIsWerkdag(weekday, medewerkers){
     return (medewerkers||[]).some(function(m){ return (Number(m.uren[weekday])||0) > 0; });
+  }
+  // De eerstvolgende werkdag ná vanIso (dus altijd minstens 1 dag verder, nooit vanIso zelf) — voor "verstreken,
+  // dus morgen"-regels: "morgen" moet een dag zijn waarop er ook echt iemand is, geen weekend of vrije dag.
+  function mzVolgendeWerkdag(vanIso, isWerkdag){
+    var d = mzAddDaysIso(vanIso, 1), guard = 0;
+    while(!isWerkdag(mzFromIso(d).getUTCDay()) && guard < 400){
+      d = mzAddDaysIso(d, 1);
+      guard++;
+    }
+    return d;
   }
 
   // Voor het Gantt-venster in Bouwplanning: een gewoon (lokaal, niet-UTC) Date-object voor "gisteren", zodat
