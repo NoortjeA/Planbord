@@ -3381,6 +3381,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
           if(worker.remaining <= capVandaag){
             b.remaining -= worker.remaining; b.finishDate = iso; b.dailyLog.push({date:iso, amount:worker.remaining});
             dayEntries.push({orderIdx:worker.orderIdx, amount:worker.remaining, finished:true});
+            var mzOFinished = byOrder[bpRow[worker.orderIdx].sourceId]; if(mzOFinished) mzOFinished.buildFinishIso = iso;
             var capLeft = capVandaag - worker.remaining;
             worker.orderIdx = null; worker.remaining = 0;
             freeList.push({workerIndex:wi, freePos:capVandaag-capLeft, capLeft:capLeft});
