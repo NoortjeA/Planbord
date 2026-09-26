@@ -2594,10 +2594,25 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 
   var STATUS_BAR_KLEUR = { '':'var(--ink-faint)', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)' };
 
+  // Sorteert een KOPIE van de orders op werkelijke bouw-startdatum (nog niet begonnen orders onderaan) — puur
+  // voor de weergave. De rij bepaalt sinds de koppeling met Magazijnplanning niet meer wanneer iets gebouwd
+  // wordt (dat volgt nu uit wat al gepickt en urgent is), dus de rij-volgorde komt niet meer vanzelf overeen
+  // met de bouwvolgorde. Zonder deze sortering zou de grafiek/tabel orders door elkaar tonen ten opzichte van
+  // wanneer ze daadwerkelijk gebouwd worden. Nooit `result.orders` zelf herschikken: de dagoverzicht-regels
+  // (renderLog) verwijzen naar orders op hun oorspronkelijke plek in die array.
+  function chronologischeBouwvolgorde(orders){
+    return orders.slice().sort(function(a,b){
+      if(a.startDate === b.startDate) return 0;
+      if(!a.startDate) return 1;
+      if(!b.startDate) return -1;
+      return a.startDate < b.startDate ? -1 : 1;
+    });
+  }
+
   function renderGantt(result){
     var el = document.getElementById('gantt');
     el.innerHTML = '';
-    var orders = result.orders.filter(function(o){ return o.amount>0; });
+    var orders = chronologischeBouwvolgorde(result.orders.filter(function(o){ return o.amount>0; }));
     if (!orders.length) return;
 
     var totalDays = WINDOW_DAYS;
@@ -2698,7 +2713,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   function renderSummary(result){
     var body = document.getElementById('summaryBody');
     body.innerHTML = '';
-    result.orders.forEach(function(o){
+    chronologischeBouwvolgorde(result.orders).forEach(function(o){
       var tr = document.createElement('tr');
       var workingDays = o.dailyLog.length;
       tr.innerHTML =
