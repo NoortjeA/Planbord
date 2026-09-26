@@ -663,7 +663,7 @@
     border-bottom-color:var(--brand-yellow);
   }
 
-/* ===== Magazijnplanning / Bezorgsuggesties / Orderplanning — gedeelde "mz-" stijl, scoped onder .mz-page ===== */
+/* ===== Magazijnplanning / Orderplanning — gedeelde "mz-" stijl, scoped onder .mz-page ===== */
 .mz-page{ background:#eef1f4; min-height:100%; padding:20px; font-family:"Roboto","Segoe UI",Inter,-apple-system,BlinkMacSystemFont,sans-serif; }
 .mz-page .mz-wrap{ max-width:1180px; margin:0 auto; }
 .mz-page .mz-top{ margin-bottom:20px; }
@@ -765,6 +765,17 @@
 #page-bouwplanning .weekgrid input{text-align:center; padding:6px 2px;}
 #page-bouwplanning .weekgrid .col.weekend .d{color:var(--ink-faint);}
 #page-bouwplanning .hint{font-size:11.5px; color:var(--ink-faint); margin-top:6px;}
+#page-bouwplanning table.medew-grid{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:4px;}
+#page-bouwplanning table.medew-grid th{
+    text-align:center; font-size:10px; letter-spacing:.02em; color:var(--brand-dark); font-weight:800;
+    text-transform:uppercase; padding:0 3px 6px; border-bottom:2px solid var(--brand-dark);
+  }
+#page-bouwplanning table.medew-grid th.naam-col{text-align:left;}
+#page-bouwplanning table.medew-grid td{padding:4px 3px; vertical-align:middle; border-bottom:1px solid var(--line);}
+#page-bouwplanning table.medew-grid input[type=text]{width:100%; min-width:0; font-family:var(--sans);}
+#page-bouwplanning table.medew-grid input[type=number]{width:100%; text-align:center; padding:5px 2px;}
+#page-bouwplanning table.medew-grid td.medew-del{width:22px; text-align:center; color:var(--ink-faint); cursor:pointer; font-size:14px;}
+#page-bouwplanning table.medew-grid td.medew-del:hover{color:var(--red);}
 #page-bouwplanning table.editor{width:100%; border-collapse:collapse; font-size:13px;}
 #page-bouwplanning table.editor th{
     text-align:left; font-size:10.5px; letter-spacing:.02em; color:var(--brand-dark);
@@ -875,10 +886,9 @@
 
 <div class="page-tabs">
   <button class="page-tab active" data-page="planbord">Planbord</button>
-  <button class="page-tab" data-page="bouwplanning">Bouwplanning</button>
   <button class="page-tab" data-page="orderplanning">Orderplanning</button>
   <button class="page-tab" data-page="magazijnplanning">Magazijnplanning</button>
-  <button class="page-tab" data-page="bezorgsuggesties">Bezorgsuggesties</button>
+  <button class="page-tab" data-page="bouwplanning">Bouwplanning</button>
 </div>
 
 <div id="page-planbord">
@@ -1098,20 +1108,21 @@
         <h2>CAPACITEIT</h2>
         <div class="body">
           <label class="field">
-            <span class="lbl">Kasten per persoon per dag</span>
+            <span class="lbl">Kasten per volle werkdag (8 uur)</span>
             <input type="number" id="productivity" min="0.1" step="0.5" value="7">
           </label>
-          <span class="lbl" style="display:block;margin-bottom:6px;">Beschikbare mensen, per weekdag</span>
-          <div class="weekgrid" id="weekgrid"></div>
-          <p class="hint">Dit patroon herhaalt elke week, tenzij je hieronder een uitzondering toevoegt.</p>
+          <span class="lbl" style="display:block;margin-bottom:6px;">Medewerkers — beschikbare uren per weekdag</span>
+          <div id="medewerkersGrid"></div>
+          <button type="button" class="add" id="addMedewerker" style="margin-top:4px;">+ Medewerker toevoegen</button>
+          <p class="hint">Elke medewerker bouwt zijn eigen order, op basis van zijn eigen uren die dag. Dit patroon herhaalt elke week, tenzij je hieronder een uitzondering toevoegt.</p>
         </div>
       </section>
 
       <section class="panel">
-        <h2>UITZONDERINGEN <span style="color:var(--ink-faint); font-weight:400; text-transform:none;">(vakantie, ziekte, extra hulp)</span></h2>
+        <h2>UITZONDERINGEN <span style="color:var(--ink-faint); font-weight:400; text-transform:none;">(vakantie, ziekte, andere uren)</span></h2>
         <div class="body">
           <table class="editor" id="exceptionsTable">
-            <thead><tr><th>Datum</th><th>Personen</th><th></th></tr></thead>
+            <thead><tr><th>Medewerker</th><th>Datum</th><th>Uren</th><th></th></tr></thead>
             <tbody id="exceptionsBody"></tbody>
           </table>
           <button class="add" id="addException">+ Uitzondering toevoegen</button>
@@ -1223,19 +1234,6 @@
   </div>
 </div>
 </div><!-- /#page-magazijnplanning -->
-
-<div id="page-bezorgsuggesties" class="mz-page" style="display:none;">
-<div class="mz-wrap">
-  <header class="mz-top">
-    <h1>Bezorgsuggesties</h1>
-    <p>Orders met eigen bezorging, gebundeld per dealer, met een voorstel voor de bezorgdag.</p>
-  </header>
-  <section class="mz-panel">
-    <h2>BEZORGSUGGESTIES PER DEALER</h2>
-    <div class="mz-body" id="mz_dealers"></div>
-  </section>
-</div>
-</div><!-- /#page-bezorgsuggesties -->
 
 
 
@@ -2242,7 +2240,6 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     document.getElementById("page-bouwplanning").style.display = page === "bouwplanning" ? "" : "none";
     document.getElementById("page-orderplanning").style.display = page === "orderplanning" ? "" : "none";
     document.getElementById("page-magazijnplanning").style.display = page === "magazijnplanning" ? "" : "none";
-    document.getElementById("page-bezorgsuggesties").style.display = page === "bezorgsuggesties" ? "" : "none";
   });
 });
 
@@ -2252,16 +2249,55 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 (function(){
   var WEEKDAY_NAMES = ['zo','ma','di','wo','do','vr','za'];
   var MONTH_NAMES = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-  // weekPattern keyed by JS getDay(): 0=Sun..6=Sat. UI displays Mon..Sun order.
+  // medewerker.uren is keyed by JS getDay(): 0=Sun..6=Sat. UI displays Mon..Sun order.
   var UI_ORDER = [1,2,3,4,5,6,0]; // Mon..Sun as getDay indices
 
+  function genMedewerkerId(){ return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
   var state = {
-    productivity: 7,
-    weekPattern: {0:0,1:1,2:2,3:2,4:2,5:2,6:0},
-    exceptions: [],
-    orders: [],
-    manualOrder: false // true zodra de rij handmatig versleept is — zie findNextCandidate hieronder
+    productivity: 7, // kasten per volle werkdag (8 uur)
+    medewerkers: [
+      { id: genMedewerkerId(), naam: 'Medewerker 1', uren: {0:0,1:8,2:8,3:8,4:8,5:8,6:0} }
+    ],
+    exceptions: [], // [{medewerkerId, date, uren}] — uren op die datum overschrijft het weekpatroon van díe medewerker
+    orders: []
   };
+
+  // Eenmalige omzetting van het oude formaat (aantal personen per weekdag) naar het nieuwe (medewerkers met
+  // eigen uren per weekdag) — zodat een eerder ingevulde capaciteit niet verloren gaat bij het openen na deze
+  // update.
+  function migreerOudeCapaciteit(parsed){
+    if (parsed.medewerkers) return parsed; // al in het nieuwe formaat
+    if (!parsed.weekPattern) return parsed; // onbekend formaat, met rust laten
+
+    var maxPersonen = 0;
+    UI_ORDER.forEach(function(k){ maxPersonen = Math.max(maxPersonen, Number(parsed.weekPattern[k])||0); });
+    (parsed.exceptions||[]).forEach(function(e){ maxPersonen = Math.max(maxPersonen, Number(e.people)||0); });
+
+    var medewerkers = [];
+    for (var i=0; i<maxPersonen; i++){
+      var uren = {};
+      for (var k=0; k<7; k++) uren[k] = (Number(parsed.weekPattern[k])||0) > i ? 8 : 0;
+      medewerkers.push({ id: genMedewerkerId(), naam: 'Medewerker ' + (i+1), uren: uren });
+    }
+    if (!medewerkers.length){
+      medewerkers.push({ id: genMedewerkerId(), naam: 'Medewerker 1', uren: {0:0,1:8,2:8,3:8,4:8,5:8,6:0} });
+    }
+
+    var nieuweExceptions = [];
+    (parsed.exceptions||[]).forEach(function(e){
+      if (!e.date) return;
+      var personen = Number(e.people)||0;
+      medewerkers.forEach(function(m, i){
+        nieuweExceptions.push({ medewerkerId: m.id, date: e.date, uren: i < personen ? 8 : 0 });
+      });
+    });
+
+    parsed.medewerkers = medewerkers;
+    parsed.exceptions = nieuweExceptions;
+    delete parsed.weekPattern;
+    return parsed;
+  }
 
   function nextMonday(){
     var d = new Date();
@@ -2319,7 +2355,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         var json = item.fields.Data || "{}";
         lastSavedBP = json;
         var parsed = JSON.parse(json);
-        if (parsed && parsed.orders && parsed.weekPattern) state = parsed;
+        if (parsed) parsed = migreerOudeCapaciteit(parsed);
+        if (parsed && parsed.orders && parsed.medewerkers) state = parsed;
         // is de opgeslagen data onverwacht leeg/onbruikbaar, dan laten we de vorige waarden gewoon staan
         // (niet overschrijven) — anders zou een netwerkhapering de ingevulde capaciteit kunnen resetten
       } else {
@@ -2337,9 +2374,10 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         if (json !== lastSavedBP){
           lastSavedBP = json;
           var parsed = JSON.parse(json);
-          if (parsed && parsed.orders && parsed.weekPattern){
+          if (parsed) parsed = migreerOudeCapaciteit(parsed);
+          if (parsed && parsed.orders && parsed.medewerkers){
             state = parsed;
-            if(!dragInProgress){ renderWeekgrid(); renderExceptions(); renderOrders(); recalcView(); }
+            if(!dragInProgress){ renderMedewerkersGrid(); renderExceptions(); renderOrders(); recalcView(); }
           }
         }
       }
@@ -2347,205 +2385,85 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   }
 
   // ---------- simulation ----------
+  // De echte dag-voor-dag bouwsimulatie draait sinds de koppeling met Magazijnplanning niet meer hier, maar in
+  // de gecombineerde simulatie in de Magazijnplanning-module (die weet wanneer een order gepickt is, en dat
+  // bepaalt wanneer de bouw mag beginnen). Deze module levert alleen nog de rij en de capaciteit aan (zie de
+  // bridge-functies verderop) en toont het resultaat.
   var WINDOW_DAYS = 15;
-  function windowStartDate(){
-    var today = new Date(); today.setHours(0,0,0,0);
-    return addDays(today, -1); // gisteren = dag 1 van het venster — nodig omdat een order met kasten-status
-                                // geel al vóór vandaag in de werkplaats kan zijn gestart (zie orderPickEligibleIso)
+
+  // Uren die een medewerker op een specifieke datum beschikbaar is: de uitzondering voor die medewerker+datum
+  // (indien aanwezig), anders zijn/haar gewone weekpatroon.
+  function urenVoorMedewerkerOpDag(medewerker, iso, weekday){
+    for (var i=0; i<state.exceptions.length; i++){
+      var e = state.exceptions[i];
+      if (e.medewerkerId === medewerker.id && e.date === iso) return Number(e.uren)||0;
+    }
+    return Number(medewerker.uren[weekday])||0;
   }
-  function addDaysIso(s, n){ return isoOf(addDays(fromIso(s), n)); }
-  function todayIsoBP(){ return isoOf(new Date()); }
-
-  // Vanaf welke dag mag deze order (met kasten) daadwerkelijk gebouwd worden? De bouwplanning kijkt hiervoor
-  // alleen naar de kasten-status zelf (niet naar de algemene bordje-status) — die vertelt precies genoeg over
-  // waar de kasten fysiek staan, ongeacht of de rest van de order al is afgehandeld.
-  //  - kasten-status geel ("wordt nu gebouwd"): kan al vóór vandaag gestart zijn — telt vanaf het begin van
-  //    het venster (gisteren).
-  //  - kasten-status rood ("aanwezig"): op inschatting altijd vanaf vandaag bouwbaar — of dat nou is omdat de
-  //    order al gepickt is en alleen nog op de werkplaats wacht, of omdat hij nog gepickt moet worden; we werken
-  //    hier op inschatting, niet op een harde bevestiging.
-  //  - anders (wit/blauw): nog niet aanwezig. Datum spullen binnen + 1 dag (spoed: dezelfde dag), of zonder
-  //    datum de inschatting van 2 weken voor de planbord-dag. Nooit eerder dan vandaag, en "onderweg" (blauw)
-  //    schuift elke dag automatisch een dag door (blijft dus altijd minstens morgen) zodat een order die nog
-  //    niet eens is aangekomen nooit voorrang krijgt op een order die al wel aanwezig is.
-  function orderPickEligibleIso(o, startIso){
-    if (o.status === 'yellow') return startIso; // al in de werkplaats — kan al voor vandaag gestart zijn
-    var today = todayIsoBP();
-    if (o.status === 'red') return today; // kasten zijn aanwezig — op inschatting altijd vanaf vandaag bouwbaar
-    var raw;
-    if (o.aanwezigDatum) raw = o.spoed ? o.aanwezigDatum : addDaysIso(o.aanwezigDatum, 1);
-    else if (o.dayKey) raw = addDaysIso(o.dayKey, -14);
-    else raw = today;
-    var floor = o.status === 'blue' ? addDaysIso(today, 1) : today;
-    return raw < floor ? floor : raw;
-  }
-
-  function simulate(){
-    var productivity = Number(state.productivity) || 0;
-    var startIsoForEligibility = isoOf(windowStartDate());
-    var orders = state.orders.map(function(o){
-      return {name:o.name, amount:Number(o.amount)||0, remaining:Number(o.amount)||0,
-              status:o.status, sourceId:o.sourceId, startDate:null, finishDate:null, dailyLog:[],
-              spoed: !!o.spoed, isWit: !o.status,
-              pickEligibleIso: orderPickEligibleIso(o, startIsoForEligibility)};
-    });
-    var dayLog = [];
-    var warnings = [];
-    var startDate = windowStartDate();
-
-    var totalKasten = orders.reduce(function(s,o){return s+o.amount;},0);
-    if (totalKasten <= 0){
-      return {orders:orders, dayLog:dayLog, warnings:['Er zijn nog geen orders met een positief aantal.'], startDate:startDate};
-    }
-
-    var weekTotal = 0;
-    for (var k=0;k<7;k++) weekTotal += Number(state.weekPattern[k])||0;
-    var exceptionHasCapacity = state.exceptions.some(function(e){ return Number(e.people)>0; });
-    if (productivity <= 0){
-      return {orders:orders, dayLog:dayLog, warnings:['Kasten per persoon per dag moet groter dan 0 zijn.'], startDate:startDate};
-    }
-    if (weekTotal <= 0 && !exceptionHasCapacity){
-      return {orders:orders, dayLog:dayLog, warnings:['Er zijn geen mensen ingepland op enige weekdag — voeg capaciteit toe aan minstens één dag.'], startDate:startDate};
-    }
-
-    var maxWorkers = weekTotal>0 ? Math.max.apply(null, UI_ORDER.map(function(k){return Number(state.weekPattern[k])||0;})) : 0;
-    state.exceptions.forEach(function(e){ maxWorkers = Math.max(maxWorkers, Number(e.people)||0); });
-    if (maxWorkers <= 0) maxWorkers = 1;
-
-    var workers = [];
-    for (var w=0; w<maxWorkers; w++) workers.push({orderIdx:null, remaining:0});
-
-    var exceptionMap = {};
-    state.exceptions.forEach(function(e){ if(e.date) exceptionMap[e.date] = Number(e.people)||0; });
-
-    var cur = new Date(startDate);
-
-    // Volgende order om aan te snijden op dag `iso`: een kast met kasten-status geel staat al in de werkplaats
-    // en is daar halverwege mee bezig — die moet sowieso als eerste afgemaakt worden, zelfs vóór spoed. Daarna
-    // spoed (als die al gepickt mag zijn), dan de normale orders in hun huidige volgorde, dan pas "wit/nieuw".
-    //   - Staat de rij nog op "automatisch" (net opnieuw bepaald via de knop): binnen een groep mag een order
-    //     die nog niet zover is worden overgeslagen voor een latere die al wel kan — zo wordt de beschikbare
-    //     tijd zo goed mogelijk benut. Dit is de standaard voor de hele rij.
-    //   - Is de rij handmatig versleept: dan houden we de volgorde binnen elke groep strikt aan. Is de
-    //     eerstvolgende, nog niet gestarte order in die groep nog niet zover, dan springen we niet door naar
-    //     een latere order — die groep levert dan voor vandaag niets op, en dat gat is bewust zichtbaar (in de
-    //     grafiek en het dag-voor-dag-overzicht), zodat er op het picken van die order gestuurd kan worden.
-    //     Dit is bewust de uitzondering (voor de paar orders die je zelf verslepen), niet de regel.
-    function findNextCandidate(iso){
-      var tierChecks = [
-        function(o){ return o.status === 'yellow'; },
-        function(o){ return o.status !== 'yellow' && o.spoed; },
-        function(o){ return o.status !== 'yellow' && !o.spoed && !o.isWit; },
-        function(o){ return o.status !== 'yellow' && o.isWit; }
-      ];
-      for (var t=0; t<tierChecks.length; t++){
-        for (var i=0; i<orders.length; i++){
-          var o = orders[i];
-          if (o.startDate !== null) continue;
-          if (!tierChecks[t](o)) continue;
-          if (o.pickEligibleIso > iso){
-            if (state.manualOrder) break; // eerstvolgende in de rij is nog niet zover — wacht, spring niet door
-            continue; // automatische volgorde: gaatje opvullen met een latere order die al wel kan
-          }
-          return i;
-        }
-      }
-      return -1;
-    }
-
-    for (var dayIdx=0; dayIdx<WINDOW_DAYS; dayIdx++){
-      var iso = isoOf(cur);
-      var weekday = cur.getDay();
-      var peopleToday = exceptionMap.hasOwnProperty(iso) ? exceptionMap[iso] : (Number(state.weekPattern[weekday])||0);
-
-      var dayEntries = [];
-      var freeList = [];
-
-      for (var wi=0; wi<workers.length; wi++){
-        var active = wi < peopleToday;
-        var worker = workers[wi];
-        if (!active) continue;
-        if (worker.orderIdx !== null){
-          var order = orders[worker.orderIdx];
-          if (worker.remaining <= productivity){
-            var used = worker.remaining;
-            order.remaining -= used;
-            order.finishDate = iso;
-            order.dailyLog.push({date:iso, amount:used});
-            dayEntries.push({orderIdx:worker.orderIdx, amount:used, finished:true});
-            var capLeft = productivity - used;
-            worker.orderIdx = null; worker.remaining = 0;
-            freeList.push({workerIndex:wi, freePos:used, capLeft:capLeft});
-          } else {
-            var used2 = productivity;
-            order.remaining -= used2;
-            order.dailyLog.push({date:iso, amount:used2});
-            dayEntries.push({orderIdx:worker.orderIdx, amount:used2, finished:false});
-            worker.remaining -= used2;
-          }
-        } else {
-          freeList.push({workerIndex:wi, freePos:0, capLeft:productivity});
-        }
-      }
-
-      freeList.sort(function(a,b){
-        if (a.freePos !== b.freePos) return a.freePos - b.freePos;
-        return a.workerIndex - b.workerIndex;
-      });
-
-      freeList.forEach(function(free){
-        var capLeft = free.capLeft;
-        while (capLeft > 0.0000001){
-          var claimedIdx = findNextCandidate(iso);
-          if (claimedIdx === -1) break;
-          var ord = orders[claimedIdx];
-          ord.startDate = iso;
-          var use = Math.min(capLeft, ord.remaining);
-          ord.remaining -= use;
-          capLeft -= use;
-          ord.dailyLog.push({date:iso, amount:use});
-          if (ord.remaining <= 0.0000001){
-            ord.finishDate = iso;
-            dayEntries.push({orderIdx:claimedIdx, amount:use, finished:true});
-          } else {
-            dayEntries.push({orderIdx:claimedIdx, amount:use, finished:false});
-            workers[free.workerIndex].orderIdx = claimedIdx;
-            workers[free.workerIndex].remaining = ord.remaining;
-            capLeft = 0;
-          }
-        }
-      });
-
-      if (peopleToday > 0 || dayEntries.length > 0){
-        dayLog.push({date:iso, weekday:weekday, people:peopleToday, capacity:peopleToday*productivity, entries:dayEntries});
-      }
-
-      cur = addDays(cur, 1);
-    }
-
-    return {orders:orders, dayLog:dayLog, warnings:warnings, startDate:startDate};
+  function capaciteitVoorMedewerkerOpDag(medewerker, iso, weekday){
+    return (urenVoorMedewerkerOpDag(medewerker, iso, weekday)/8) * (Number(state.productivity)||0);
   }
 
   // ---------- rendering ----------
-  function renderWeekgrid(){
-    var el = document.getElementById('weekgrid');
+  var WEEKDAY_ABBR_KORT = ['zo','ma','di','wo','do','vr','za'];
+  function renderMedewerkersGrid(){
+    var el = document.getElementById('medewerkersGrid');
     el.innerHTML = '';
+    var table = document.createElement('table');
+    table.className = 'medew-grid';
+    var thead = document.createElement('thead');
+    var headRow = document.createElement('tr');
+    var thNaam = document.createElement('th'); thNaam.className = 'naam-col'; thNaam.textContent = 'Naam';
+    headRow.appendChild(thNaam);
     UI_ORDER.forEach(function(dayIdx){
-      var col = document.createElement('div');
-      col.className = 'col' + ((dayIdx===0||dayIdx===6) ? ' weekend' : '');
-      var label = document.createElement('div');
-      label.className = 'd';
-      label.textContent = WEEKDAY_NAMES[dayIdx];
-      var input = document.createElement('input');
-      input.type = 'number'; input.min = '0'; input.step='1';
-      input.value = state.weekPattern[dayIdx];
-      input.addEventListener('input', function(){
-        state.weekPattern[dayIdx] = Number(input.value)||0;
-        recalc();
-      });
-      col.appendChild(label); col.appendChild(input);
-      el.appendChild(col);
+      var th = document.createElement('th'); th.textContent = WEEKDAY_ABBR_KORT[dayIdx];
+      headRow.appendChild(th);
     });
+    headRow.appendChild(document.createElement('th'));
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    state.medewerkers.forEach(function(medewerker, idx){
+      var tr = document.createElement('tr');
+
+      var tdNaam = document.createElement('td');
+      var naamInput = document.createElement('input');
+      naamInput.type = 'text'; naamInput.value = medewerker.naam || '';
+      naamInput.placeholder = 'Medewerker ' + (idx+1);
+      naamInput.addEventListener('input', function(){ medewerker.naam = naamInput.value; renderExceptions(); persistNaam(); });
+      tdNaam.appendChild(naamInput);
+      tr.appendChild(tdNaam);
+
+      UI_ORDER.forEach(function(dayIdx){
+        var td = document.createElement('td');
+        var input = document.createElement('input');
+        input.type = 'number'; input.min = '0'; input.step = '0.5';
+        input.value = medewerker.uren[dayIdx];
+        input.addEventListener('input', function(){
+          medewerker.uren[dayIdx] = Number(input.value)||0;
+          recalc();
+        });
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+
+      var tdDel = document.createElement('td'); tdDel.className = 'medew-del'; tdDel.textContent = '\u2715';
+      tdDel.title = 'Medewerker verwijderen';
+      tdDel.addEventListener('click', function(){
+        state.medewerkers.splice(idx, 1);
+        state.exceptions = state.exceptions.filter(function(e){ return e.medewerkerId !== medewerker.id; });
+        renderMedewerkersGrid(); renderExceptions(); recalc();
+      });
+      tr.appendChild(tdDel);
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    el.appendChild(table);
+
+    // een kleine, aparte save zonder de hele grid opnieuw te tekenen (voorkomt focusverlies tijdens typen)
+    function persistNaam(){ save(); }
   }
 
   function renderExceptions(){
@@ -2554,17 +2472,28 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     state.exceptions.forEach(function(exc, idx){
       var tr = document.createElement('tr');
 
+      var tdMedewerker = document.createElement('td');
+      var select = document.createElement('select');
+      state.medewerkers.forEach(function(m, mi){
+        var opt = document.createElement('option');
+        opt.value = m.id; opt.textContent = m.naam || ('Medewerker ' + (mi+1));
+        if (m.id === exc.medewerkerId) opt.selected = true;
+        select.appendChild(opt);
+      });
+      select.addEventListener('change', function(){ exc.medewerkerId = select.value; recalc(); });
+      tdMedewerker.appendChild(select);
+
       var tdDate = document.createElement('td');
       var dateInput = document.createElement('input');
       dateInput.type = 'date'; dateInput.value = exc.date || '';
       dateInput.addEventListener('input', function(){ exc.date = dateInput.value; recalc(); });
       tdDate.appendChild(dateInput);
 
-      var tdPeople = document.createElement('td'); tdPeople.className='num';
-      var peopleInput = document.createElement('input');
-      peopleInput.type='number'; peopleInput.min='0'; peopleInput.value = exc.people;
-      peopleInput.addEventListener('input', function(){ exc.people = Number(peopleInput.value)||0; recalc(); });
-      tdPeople.appendChild(peopleInput);
+      var tdUren = document.createElement('td'); tdUren.className='num';
+      var urenInput = document.createElement('input');
+      urenInput.type='number'; urenInput.min='0'; urenInput.step='0.5'; urenInput.value = exc.uren;
+      urenInput.addEventListener('input', function(){ exc.uren = Number(urenInput.value)||0; recalc(); });
+      tdUren.appendChild(urenInput);
 
       var tdActions = document.createElement('td'); tdActions.className='actions';
       var delBtn = document.createElement('button'); delBtn.className='icon danger'; delBtn.textContent='\u2715';
@@ -2572,7 +2501,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       delBtn.addEventListener('click', function(){ state.exceptions.splice(idx,1); renderExceptions(); recalc(); });
       tdActions.appendChild(delBtn);
 
-      tr.appendChild(tdDate); tr.appendChild(tdPeople); tr.appendChild(tdActions);
+      tr.appendChild(tdMedewerker); tr.appendChild(tdDate); tr.appendChild(tdUren); tr.appendChild(tdActions);
       body.appendChild(tr);
     });
   }
@@ -2619,7 +2548,6 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         var toIdx = state.orders.indexOf(order);
         var insertAt = before ? toIdx : toIdx + 1;
         state.orders.splice(insertAt, 0, draggedOrder);
-        state.manualOrder = true; // vanaf nu strikt deze volgorde aanhouden, gaten worden zichtbaar
         draggedOrder = null;
         renderOrders(); recalc();
       });
@@ -2666,27 +2594,6 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 
   var STATUS_BAR_KLEUR = { '':'var(--ink-faint)', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)' };
 
-  // Geeft een kopie van de orderlijst terug, gesorteerd op startdatum (vroegst eerst, nog niet
-  // ingeplande orders achteraan). Wordt alleen gebruikt om ná het klikken op "Volgorde opnieuw bepalen"
-  // de rij zelf in de berekende bouwvolgorde te zetten — de grafiek en het overzicht tonen daarna gewoon
-  // diezelfde rij-volgorde (result.orders), zonder nog een keer apart te sorteren. Zo kunnen de rij en de
-  // grafiek nooit meer uit elkaar lopen.
-  function chronologicalOrders(orders){
-    return orders.slice().sort(function(a,b){
-      if (a.startDate !== b.startDate){
-        if (!a.startDate) return 1;
-        if (!b.startDate) return -1;
-        return a.startDate < b.startDate ? -1 : 1;
-      }
-      if (a.finishDate !== b.finishDate){
-        if (!a.finishDate) return 1;
-        if (!b.finishDate) return -1;
-        return a.finishDate < b.finishDate ? -1 : 1;
-      }
-      return 0;
-    });
-  }
-
   function renderGantt(result){
     var el = document.getElementById('gantt');
     el.innerHTML = '';
@@ -2696,11 +2603,12 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     var totalDays = WINDOW_DAYS;
     var winStart = result.startDate;
 
-    var excMap = {};
-    state.exceptions.forEach(function(e){ if(e.date) excMap[e.date] = Number(e.people)||0; });
     function peopleOn(d){
       var iso = isoOf(d);
-      return excMap.hasOwnProperty(iso) ? excMap[iso] : (Number(state.weekPattern[d.getDay()])||0);
+      var weekday = d.getDay();
+      var totaal = 0;
+      state.medewerkers.forEach(function(m){ totaal += capaciteitVoorMedewerkerOpDag(m, iso, weekday); });
+      return totaal;
     }
 
     var wrap = document.createElement('div');
@@ -2869,27 +2777,28 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     };
   }
 
-  // Zet de volgorde van de orderlijst volledig terug naar de volgorde op het planbord
-  // (dag voor dag, en binnen een dag op plek van het bordje) — overschrijft elke handmatige herschikking.
-  // Daarna wordt meteen doorgerekend wanneer alles op basis van díe volgorde daadwerkelijk gebouwd zou worden,
-  // en wordt de rij zelf in die berekende volgorde gezet — zo lopen de rij en de grafiek altijd gelijk.
+  // Zet de volgorde van de orderlijst volledig terug naar de volgorde op het planbord (dag voor dag, en binnen
+  // een dag op plek van het bordje) — overschrijft elke handmatige herschikking. Twee uitzonderingen op die
+  // planbord-volgorde: kasten met status geel (al in de werkplaats) komen altijd bovenaan, en spoed-orders
+  // krijgen voorrang op de rest. Verder wordt hier NIETS zelf "slim" uitgerekend of opgevuld — geen gaatjes
+  // opvullen, geen simulatie — puur een vaste sortering. Wat er daarna gebeurt (welke dag welke order aan de
+  // beurt is) bepaalt de rij zelf, strikt van boven naar beneden.
+  function prioriteitVoorKnop(f){
+    if (f.status === 'yellow') return 0; // al in de werkplaats: altijd bovenaan
+    if (f.spoed) return 1; // spoed: voorrang op de planbord-volgorde
+    return 2;
+  }
   function resetOrderQueueFromPlanbord(){
     var pb = (typeof window.getPlanbordState === 'function') ? window.getPlanbordState() : null;
     if (!pb || !pb.cards) return; // planbord nog niet geladen — niets om op te resetten
     var found = collectOrderCandidates();
     found.sort(function(a,b){
+      var pa = prioriteitVoorKnop(a), pbb = prioriteitVoorKnop(b);
+      if (pa !== pbb) return pa - pbb;
       if (a.dayKey !== b.dayKey) return a.dayKey < b.dayKey ? -1 : 1;
       return a.dayIdx - b.dayIdx;
     });
     state.orders = found.map(orderRecordFromCandidate);
-    state.manualOrder = false; // eerst automatisch laten uitrekenen wat de handigste volgorde is (gaatjes opvullen)
-
-    var berekend = simulate();
-    var bySourceId = {};
-    state.orders.forEach(function(o){ bySourceId[o.sourceId] = o; });
-    state.orders = chronologicalOrders(berekend.orders)
-      .map(function(o){ return bySourceId[o.sourceId]; })
-      .filter(Boolean);
 
     renderOrders();
     recalc();
@@ -2927,6 +2836,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     // de rangschikking wijzigen, dus een statuswijziging verplaatst een order niet meer in de wachtrij.
     kept.forEach(function(o){
       var f = foundById[o.sourceId];
+      if (!f) return; // deze order wordt nu even "vastgehouden" ondanks een gemiste cyclus — velden laten zoals ze waren
       var newName = (f.ordernr || '(geen nr.)') + (f.klant ? (' · ' + f.klant) : '');
       if (o.ordernr!==f.ordernr || o.klant!==f.klant || o.amount!==f.amount || o.name!==newName || o.status!==f.status ||
           o.generalStatus!==f.generalStatus || o.spoed!==f.spoed || o.aanwezigDatum!==f.aanwezigDatum || o.dayKey!==f.dayKey){
@@ -2963,8 +2873,12 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   }
 
   var lastBouwResult = null;
+  // Het echte bouwschema komt sinds de koppeling met Magazijnplanning niet meer uit een eigen berekening hier,
+  // maar uit de gecombineerde simulatie daar (die weet wanneer een order gepickt is, en dat bepaalt wanneer de
+  // bouw mag beginnen) — deze module levert alleen de rij en de capaciteit aan (zie de bridge-functies hieronder).
   function recalcView(){
-    var result = simulate();
+    var result = (typeof window.getCombinedBouwResult === 'function') ? window.getCombinedBouwResult() : null;
+    if (!result) result = {orders:[], dayLog:[], warnings:[], startDate: addDays(new Date(), -1)};
     lastBouwResult = result;
     renderHeadlineAndWarnings(result);
     renderGantt(result);
@@ -2976,6 +2890,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     recalcView();
   }
   window.getBouwplanningResult = function(){ return lastBouwResult; };
+  window.getBouwplanningRow = function(){ return state.orders; };
+  window.getBouwplanningCapaciteit = function(){ return { productivity: state.productivity, medewerkers: state.medewerkers, exceptions: state.exceptions }; };
 
   async function init(){
     await load();
@@ -2986,15 +2902,20 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     });
 
     document.getElementById('addException').addEventListener('click', function(){
-      state.exceptions.push({date:isoOf(nextMonday()), people:0});
+      state.exceptions.push({medewerkerId: state.medewerkers.length ? state.medewerkers[0].id : null, date:isoOf(nextMonday()), uren:0});
       renderExceptions(); recalc();
+    });
+
+    document.getElementById('addMedewerker').addEventListener('click', function(){
+      state.medewerkers.push({ id: genMedewerkerId(), naam: 'Medewerker ' + (state.medewerkers.length+1), uren: {0:0,1:8,2:8,3:8,4:8,5:8,6:0} });
+      renderMedewerkersGrid(); recalc();
     });
 
     document.getElementById('resetOrderQueueBtn').addEventListener('click', function(){
       resetOrderQueueFromPlanbord();
     });
 
-    renderWeekgrid();
+    renderMedewerkersGrid();
     renderExceptions();
     syncOrdersFromPlanbord();
     renderOrders();
@@ -3004,6 +2925,11 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       if(dragInProgress) return;
       if(syncOrdersFromPlanbord()){ renderOrders(); recalc(); }
     }, 4000);
+    // Het bouwschema hangt nu af van Magazijnplanning (die op zijn beurt weer bijhoudt wat hier verandert) —
+    // ververs de weergave daarom ook periodiek zonder dat er iets aan de rij zelf hoeft te wijzigen, zodat een
+    // wijziging aan de andere kant (of een trage eerste lading bij het openen) altijd binnen een paar tellen
+    // doorkomt, niet pas bij de eerstvolgende handmatige wijziging.
+    setInterval(function(){ if(!dragInProgress) recalcView(); }, 4000);
   }
 
   if (window.planbordSignedInPromise){
@@ -3067,7 +2993,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
           var parsed = JSON.parse(json);
           if(parsed && parsed.weekPattern){
             mzState = parsed;
-            mzRenderWeekgrid(); mzRenderSettings(); mzRenderOverview(); mzRenderDealers(); mzRenderOrders(); mzRefreshPlanbordCards();
+            mzRenderWeekgrid(); mzRenderSettings(); mzRenderOverview(); mzRenderOrders(); mzRefreshPlanbordCards();
           }
         }
       }
@@ -3129,19 +3055,27 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  // Vanaf welke dag mag deze order gepickt worden (los van beschikbare capaciteit — dat regelt mzScheduleTasks)?
-  // Met datum spullen binnen ingevuld: dag erna (spoed: dezelfde dag).
-  // Zonder datum: inschatting op basis van de planbord-dag (2 weken ervoor bij bouw-orders, 1 week bij niet-bouw).
-  function mzPickDay(c, dayKey, kastenAantal){
-    if(c.aanwezigDatum){
-      return c.spoed ? c.aanwezigDatum : mzAddDaysIso(c.aanwezigDatum, 1);
-    }
-    var offsetDays = kastenAantal > 0 ? 14 : 7;
-    return mzAddDaysIso(dayKey, -offsetDays);
+  // Vanaf welke dag mag deze order gepickt worden? Kasten-status (of algemene status) ROOD betekent "de spullen
+  // zijn er al" — dat is een vaststaand feit, geen inschatting, dus dan telt vandaag als leverdatum. Zonder dat
+  // feit: de opgegeven "spullen binnen"-datum, of bij ontbreken daarvan een inschatting (planborddag min 14
+  // dagen bij bouw-orders, min 7 dagen zonder kasten) — en is die datum al verstreken, dan morgen.
+  function mzLeverdatum(c, dayKey, kastenAantal){
+    if(c.status === 'red' || c.kastenStatus === 'red') return mzTodayIso();
+    var schatting = mzAddDaysIso(dayKey, -(kastenAantal > 0 ? 14 : 7));
+    var lever = c.aanwezigDatum ? c.aanwezigDatum : schatting;
+    var vandaag = mzTodayIso();
+    if(lever < vandaag) lever = mzAddDaysIso(vandaag, 1);
+    return lever;
+  }
+
+  // Regel 1: picken mag pas vanaf de dag ná "spullen binnen" — spoed mag dezelfde dag.
+  function mzPickReadyIso(c, dayKey, kastenAantal){
+    var lever = mzLeverdatum(c, dayKey, kastenAantal);
+    return c.spoed ? lever : mzAddDaysIso(lever, 1);
   }
 
   // Handmatig al op "gepickt" (of verder) gezet — via de kasten-status óf de algemene bordje-status, welke van
-  // de twee dan ook. Zelfde regel als in Bouwplanning, zodat beide tabbladen elkaar niet tegenspreken.
+  // de twee dan ook.
   function mzAlGepickt(c){
     return c.kastenStatus === 'yellow' || c.kastenStatus === 'green' ||
       c.status === 'yellow' || c.status === 'green';
@@ -3153,129 +3087,122 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     return hours * 60;
   }
 
-  // Laden gaat voor alles — dat is een harde toezegging aan de klant ("morgen wordt het opgehaald/gebracht"),
-  // die mag nooit wegens capaciteit verschuiven. Daarna Controle (spullen die de deur uit gaan, beperkte ruimte
-  // op de vloer — moet er zo snel mogelijk af), en pas daarna Picken (nieuw werk).
-  function mzTaskTier(type){
-    if (type === 'Laden') return 0;
-    if (type === 'Controle + inpak' || type === 'Controle na bouw') return 1;
-    return 2;
+  function mzDaysBetween(isoA, isoB){
+    return Math.round((mzFromIso(isoB) - mzFromIso(isoA)) / 86400000);
   }
 
-  // Verdeelt alle taken over de dagen zonder de beschikbare uren van die dag te overschrijden. Een taak die
-  // niet meer past, schuift in zijn geheel door naar de eerstvolgende dag met genoeg ruimte — dagen met 0 uur
-  // beschikbaar (bv. een weekend) worden dus automatisch overgeslagen. Niets wordt met terugwerkende kracht
-  // ingepland: vandaag is voor elke taak het vroegste moment. Binnen een gelijke prioriteit gaat de vroegste
-  // oorspronkelijke dag voor, en spoed-taken gaan voor bij een gelijke oorspronkelijke dag.
-  function mzScheduleTasks(tasks){
-    var today = mzTodayIso();
-    var ordered = tasks.slice().sort(function(a,b){
-      var ta = mzTaskTier(a.type), tb = mzTaskTier(b.type);
-      if(ta !== tb) return ta - tb;
-      if(a.naturalDay !== b.naturalDay) return a.naturalDay < b.naturalDay ? -1 : 1;
-      if(!!a.spoed !== !!b.spoed) return a.spoed ? -1 : 1;
-      return 0;
-    });
-    var used = {};
-    var LOOKAHEAD_LIMIT = 400; // veiligheidsgrens tegen een oneindige zoektocht bij een onmogelijke configuratie
-    ordered.forEach(function(t){
-      var floorDay = t.naturalDay < today ? today : t.naturalDay;
-      var day = floorDay;
-      var tries = 0;
-      while(((used[day]||0) + t.minutes) > mzCapMinutes(day) && tries < LOOKAHEAD_LIMIT){
-        day = mzAddDaysIso(day, 1);
-        tries++;
-      }
-      t.assignedDay = day;
-      t.verschovenCapaciteit = t.minutes > 0 && day !== floorDay;
-      // Rood mag alleen wanneer de deadline op het planbord echt niet meer haalbaar is — niet bij elke verschuiving.
-      t.warn = !!t.deadlineDay && t.assignedDay > t.deadlineDay;
-      used[day] = (used[day]||0) + t.minutes;
-    });
-    return tasks;
+  // "Vandaag/morgen/overmorgen" tellen in werkdagen, niet in kalenderdagen — en Magazijnplanning en Bouwplanning
+  // hebben elk hun eigen werkdagen (bijv. magazijn ma-vr, bouw ma-do): een werkdag is een dag waarop er ergens
+  // uren zijn ingevuld. Bij een verstreken of vandaag-datum (totIso <= vanIso) blijft het gewoon het kalender-
+  // verschil (kan 0 of negatief zijn) — dat hoeft niet in werkdagen geteld te worden, "vandaag" is "vandaag".
+  function werkdagenTussen(vanIso, totIso, isWerkdag){
+    if(totIso <= vanIso) return mzDaysBetween(vanIso, totIso);
+    var count = 0, cur = vanIso, guard = 0;
+    while(cur < totIso && guard < 400){
+      cur = mzAddDaysIso(cur, 1);
+      if(isWerkdag(mzFromIso(cur).getUTCDay())) count++;
+      guard++;
+    }
+    return count;
+  }
+  function mzIsWerkdag(weekday){ return (Number(mzState.weekPattern[weekday])||0) > 0; }
+  function bpIsWerkdag(weekday, medewerkers){
+    return (medewerkers||[]).some(function(m){ return (Number(m.uren[weekday])||0) > 0; });
+  }
+
+  // Voor het Gantt-venster in Bouwplanning: een gewoon (lokaal, niet-UTC) Date-object voor "gisteren", zodat
+  // dat scherm zijn vaste 15-dagen-venster kan blijven tekenen zoals voorheen.
+  function mzLocalYesterday(){
+    var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - 1);
+    return d;
+  }
+
+  // ---------- Bouwplanning-capaciteit, hier herhaald (alleen de rekenformule, geen eigen databron) zodat de
+  // gecombineerde simulatie hieronder er dag voor dag mee kan rekenen. ----------
+  function mzUrenVoorMedewerkerOpDag(medewerker, exceptions, iso, weekday){
+    for(var i=0; i<exceptions.length; i++){
+      var e = exceptions[i];
+      if(e.medewerkerId === medewerker.id && e.date === iso) return Number(e.uren)||0;
+    }
+    return Number(medewerker.uren[weekday])||0;
+  }
+  function mzCapaciteitVoorMedewerkerOpDag(medewerker, exceptions, productivity, iso, weekday){
+    return (mzUrenVoorMedewerkerOpDag(medewerker, exceptions, iso, weekday)/8) * productivity;
   }
 
   var MZ_STATUS_LABEL = { '':'Wit — nieuw', blue:'Besteld', red:'Aanwezig', yellow:'In verwerking', green:'Uitgeleverd' };
   var MZ_STATUS_COLOR = { '':'#ffffff', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)', green:'var(--status-green)' };
 
-  var lastMzResult = null;
-  window.getMagazijnResult = function(){ return lastMzResult; }; // bridge voor het Planbord
+  var MZ_LOOKAHEAD_DAYS = 14; // maximaal 2 weken vooruitkijken voor orders waar verder niets aan de hand is
 
-  function mzCollect(){
+  var lastMzResult = null;
+  var lastCombinedBouwResult = null;
+  window.getMagazijnResult = function(){ return lastMzResult; }; // bridge voor het Planbord
+  // Bouwplanning vraagt hier zijn schema op — dat rekent (opnieuw) de hele gecombineerde simulatie door, zodat
+  // Bouwplanning nooit een verouderd resultaat krijgt, ook niet vlak na het openen vóórdat Magazijnplanning
+  // zelf al eens heeft ververst.
+  window.getCombinedBouwResult = function(){ mzRunGecombineerdeSimulatie(); return lastCombinedBouwResult; };
+
+  // De dag-voor-dag gecombineerde simulatie: Magazijnplanning en Bouwplanning lopen hand in hand door de tijd,
+  // dag voor dag, in drie stappen per dag:
+  //   1) Magazijnplanning plant die dag het picken en de controle/inpak-taken in, geprioriteerd (zie hieronder).
+  //   2) Bouwplanning bouwt die dag verder: een normale order mag pas de dag ná het picken starten, een
+  //      spoed-order mag dezelfde dag nog starten (want die is net in stap 1 gepickt).
+  //   3) Magazijnplanning kijkt nog één keer of een spoed-order die zojuist in stap 2 is afgebouwd, dezelfde dag
+  //      nog gecontroleerd kan worden.
+  // Zo hoeft geen van beide kanten te gokken over wat de ander nog gaat doen: alles waarmee gerekend wordt is al
+  // echt vastgesteld op het moment dat ernaar gekeken wordt — nooit iets van vandaag of later bij de ander.
+  //
+  // Prioriteit van Magazijnplanning binnen een dag (laag getal = eerst): 0 = laden (apart vrijgehouden, zie
+  // hieronder), 10/11 = moet vandaag (of eerder) klaar zijn — eerst picken (rood, nog de meeste stappen te gaan,
+  // dus het minste speling) dan controle (geel), 30/31 = nodig voor morgen (eerst picken zodat de bouw morgen
+  // kan beginnen, dan controle zodat het morgen weg kan), 40/41 = spoed ergens in de komende week, 50+ = verder
+  // in de toekomst, per dag: eerst controle (geel → groen) dan picken (rood → picken), tot maximaal 2 weken.
+  function mzRunGecombineerdeSimulatie(){
     var pb = (typeof window.getPlanbordState === 'function') ? window.getPlanbordState() : null;
-    var bp = (typeof window.getBouwplanningResult === 'function') ? window.getBouwplanningResult() : null;
-    var bpOrders = (bp && bp.orders) ? bp.orders : [];
-    var flatTasks = [];
+    var bpRowRaw = (typeof window.getBouwplanningRow === 'function') ? window.getBouwplanningRow() : [];
+    var bpCap = (typeof window.getBouwplanningCapaciteit === 'function') ? window.getBouwplanningCapaciteit() : {productivity:0, medewerkers:[], exceptions:[]};
+
+    var days = {};
+    function ensureDay(dk){ if(!days[dk]) days[dk] = { tasks: [], totalMinutes: 0 }; return days[dk]; }
     var dealerGroups = {};
     var byOrder = {};
-    if(!pb || !pb.cards) return { days: {}, dealerGroups: dealerGroups, byOrder: byOrder };
+    var bouwWarnings = [];
 
+    if(!pb || !pb.cards){
+      lastMzResult = { days: days, dealerGroups: dealerGroups, byOrder: byOrder };
+      lastCombinedBouwResult = { orders: [], dayLog: [], warnings: [], startDate: mzLocalYesterday() };
+      return lastMzResult;
+    }
+
+    // ---- Orders verzamelen + wat elke order nog nodig heeft ----
+    var orders = [];
     Object.keys(pb.cards).forEach(function(dayKey){
       (pb.cards[dayKey] || []).forEach(function(c){
         if(c.type !== 'order') return;
         var kastenAantal = parseInt(c.kastenAantal, 10); if(isNaN(kastenAantal)) kastenAantal = 0;
         var label = (c.ordernr || '(geen nr.)') + (c.klant ? ' · ' + c.klant : '');
-
-        var orderInfo = {
+        var klaar = c.status === 'green';
+        var alGepickt = mzAlGepickt(c);
+        var o = {
           sourceId: c.id, ordernr: c.ordernr || '(geen nr.)', klant: c.klant || '', dayKey: dayKey,
           status: c.status || '', kastenStatus: c.kastenStatus || '', kastenAantal: kastenAantal, aanwezigDatum: c.aanwezigDatum || '',
           spoed: !!c.spoed, eigenbezorging: !!c.eigenbezorging, chauffeur: c.chauffeur || '', bezorgstatus: c.bezorgstatus || '',
-          picken: null, bouw: null, controle: null, bezorgVoorstel: null
+          label: label, klaar: klaar,
+          needsPick: !klaar && !alGepickt,
+          pickReadyIso: !klaar ? mzPickReadyIso(c, dayKey, kastenAantal) : null,
+          pickedOnIso: (klaar || alGepickt) ? '0000-00-00' : null,
+          needsBuild: !klaar && kastenAantal > 0 && c.kastenStatus !== 'green',
+          buildFinishIso: (!klaar && kastenAantal > 0 && c.kastenStatus === 'green') ? mzTodayIso() : null,
+          finalStepType: kastenAantal > 0 ? 'Controle na bouw' : 'Controle + inpak',
+          finalStepMinutes: kastenAantal > 0 ? mzState.checkBuildMinutes : mzState.packMinutes,
+          controleOnIso: null, bezorgVoorstel: null,
+          picken: (klaar || alGepickt) ? { done: true } : null, controle: klaar ? { done: true } : null, bouw: null
         };
-        byOrder[c.id] = orderInfo;
+        byOrder[c.id] = o;
+        orders.push(o);
 
-        // Een bordje met status groen ("gereed") is voldaan — daar hoeft het magazijn niets meer voor te doen.
-        // Enige uitzondering: bij eigen vervoer moet het nog wel worden ingeladen, dat blijft hieronder gewoon
-        // meelopen via de dealer-bundel.
-        var klaar = c.status === 'green';
-        if(klaar){
-          orderInfo.picken = { done: true };
-          orderInfo.controle = { done: true };
-        } else {
-          if(mzAlGepickt(c)){
-            orderInfo.picken = { done: true };
-          } else {
-            var pickNaturalDay = mzPickDay(c, dayKey, kastenAantal);
-            var pickTask = {
-              sourceId: c.id, label: label, type: 'Picken', minutes: mzState.pickMinutes,
-              naturalDay: pickNaturalDay, spoed: c.spoed, deadlineDay: dayKey
-            };
-            flatTasks.push(pickTask);
-            orderInfo.picken = { task: pickTask };
-          }
-
-          if(kastenAantal <= 0){
-            var packTask = {
-              sourceId: c.id, label: label, type: 'Controle + inpak', minutes: mzState.packMinutes,
-              naturalDay: dayKey, spoed: c.spoed, deadlineDay: dayKey
-            };
-            flatTasks.push(packTask);
-            orderInfo.controle = { task: packTask };
-          } else {
-            var bpOrder = bpOrders.filter(function(o){ return o.sourceId === c.id; })[0];
-            orderInfo.bouw = bpOrder ? { start: bpOrder.startDate, finish: bpOrder.finishDate } : null;
-            if(bpOrder && bpOrder.finishDate){
-              var checkDay = mzAddDaysIso(bpOrder.finishDate, 1);
-              var checkTask = {
-                sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
-                naturalDay: checkDay, spoed: c.spoed, deadlineDay: dayKey
-              };
-              flatTasks.push(checkTask);
-              orderInfo.controle = { task: checkTask };
-            } else if(c.kastenStatus === 'green'){
-              var checkTask2 = {
-                sourceId: c.id, label: label, type: 'Controle na bouw', minutes: mzState.checkBuildMinutes,
-                naturalDay: dayKey, spoed: c.spoed, deadlineDay: dayKey
-              };
-              flatTasks.push(checkTask2);
-              orderInfo.controle = { task: checkTask2 };
-            } else {
-              orderInfo.controle = { pending: true, note: (bpOrder && bpOrder.startDate) ? ('bouw gepland vanaf ' + bpOrder.startDate) : 'wacht op bouw' };
-            }
-          }
-        }
-
-        if(c.eigenbezorging && c.klant){
+        if(!klaar && c.eigenbezorging && c.klant){
           var groupKey = mzIsoWeekOf(dayKey) + '|' + c.klant;
           if(!dealerGroups[groupKey]) dealerGroups[groupKey] = { dealer: c.klant, week: mzIsoWeekOf(dayKey), orders: [], spoedOrders: [] };
           var entry = { sourceId: c.id, ordernr: c.ordernr || '(geen nr.)', dayKey: dayKey };
@@ -3285,54 +3212,226 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       });
     });
 
-    // Bezorgvoorstel + laadtaak per dealer-bundel (1 "rit" = alle niet-spoed orders van 1 dealer met eigen
-    // bezorging op dezelfde planbord-dag) — het laden gebeurt, net als bij een externe vervoerder, pas de dag
-    // ná de dag waarop de laatste order van de bundel klaar staat, niet diezelfde dag.
+    // Bezorgvoorstel (informatief overzicht per dealer): laatste planborddag van de bundel + 1.
     Object.keys(dealerGroups).forEach(function(gk){
       var g = dealerGroups[gk];
       if(!g.orders.length) return;
       var lastKey = g.orders.map(function(o){ return o.dayKey; }).sort().slice(-1)[0];
       var laadDag = mzAddDaysIso(lastKey, 1);
-      g.orders.forEach(function(entry){
-        if(byOrder[entry.sourceId]) byOrder[entry.sourceId].bezorgVoorstel = laadDag;
-      });
-      flatTasks.push({
-        sourceId: null, label: g.dealer + ' (' + g.orders.length + ' order' + (g.orders.length > 1 ? 's' : '') + ')',
-        type: 'Laden', minutes: mzState.loadMinutes, naturalDay: laadDag, spoed: false, deadlineDay: laadDag
-      });
+      g.orders.forEach(function(entry){ if(byOrder[entry.sourceId]) byOrder[entry.sourceId].bezorgVoorstel = laadDag; });
     });
-    // spoed-orders met eigen bezorging wachten niet op een bundel — worden los geladen
-    Object.keys(byOrder).forEach(function(sid){
-      var o = byOrder[sid];
-      if(o.eigenbezorging && o.spoed){
-        var laadDag = mzAddDaysIso(o.dayKey, 1);
-        o.bezorgVoorstel = laadDag;
-        flatTasks.push({
-          sourceId: sid, label: o.ordernr + (o.klant ? ' · ' + o.klant : ''),
-          type: 'Laden', minutes: mzState.loadMinutes, naturalDay: laadDag, spoed: true, deadlineDay: laadDag
+
+    // ---- Bouw: rij + capaciteit voorbereiden (alleen orders die nog gebouwd moeten worden) ----
+    var bpRow = bpRowRaw.filter(function(r){ var o = byOrder[r.sourceId]; return o && o.needsBuild; });
+    var bouwByOrder = {};
+    bpRow.forEach(function(r){
+      bouwByOrder[r.sourceId] = {
+        amount: Number(r.amount)||0, remaining: Number(r.amount)||0,
+        startDate: null, finishDate: null, dailyLog: []
+      };
+    });
+    if(!(bpCap.medewerkers||[]).length && bpRow.length){
+      bouwWarnings.push('Voeg minstens één medewerker toe.');
+    }
+    if((Number(bpCap.productivity)||0) <= 0 && bpRow.length){
+      bouwWarnings.push('Kasten per volle werkdag moet groter dan 0 zijn.');
+    }
+    var workers = (bpCap.medewerkers||[]).map(function(m){ return {medewerker:m, orderIdx:null, remaining:0}; });
+
+    function bpCapVandaag(worker, iso, weekday){
+      return mzCapaciteitVoorMedewerkerOpDag(worker.medewerker, bpCap.exceptions||[], Number(bpCap.productivity)||0, iso, weekday);
+    }
+    // Bouwplanning heeft geen eigen vaste volgorde meer — hij bouwt, uit alles wat Magazijnplanning al heeft
+    // vrijgegeven (gepickt), elke dag opnieuw het meest urgente. Kasten-status geel (al in de werkplaats) gaat
+    // altijd voor. Daarna, in volgorde: spoed dat binnen 2 werkdagen weg moet, dan wat vandaag weg moet, dan
+    // morgen, dan overmorgen, dan spoed dat deze week weg moet, en dan de rest op planborddag (werkdagen, tot
+    // 2 weken vooruit) — dit ligt dichter bij spoed dan Magazijnplanning's eigen prioriteit, omdat een gemiste
+    // bouwdeadline een grotere impact heeft. Er is geen "nooit doorspringen" meer nodig: zonder vaste volgorde
+    // kan er ook geen gat ontstaan — elke dag wordt gewoon het beste beschikbare werk gekozen.
+    function bpRank(r, iso){
+      if(r.status === 'yellow') return -1000; // al in de werkplaats, halverwege — altijd eerst afmaken
+      var pickedOn = byOrder[r.sourceId] ? byOrder[r.sourceId].pickedOnIso : null;
+      if(!pickedOn) return null; // nog niet gepickt door Magazijnplanning — nog niet beschikbaar
+      var eligibleFloor = r.spoed ? pickedOn : mzAddDaysIso(pickedOn, 1);
+      if(eligibleFloor > iso) return null; // spoed: pas dezelfde dag als gepickt bouwbaar; anders pas de dag erna
+      var offset = werkdagenTussen(iso, r.dayKey, function(wd){ return bpIsWerkdag(wd, bpCap.medewerkers); });
+      if(r.spoed && offset <= 2) return 0;
+      if(offset <= 0) return 10;
+      if(offset === 1) return 20;
+      if(offset === 2) return 30;
+      if(r.spoed && offset <= 7) return 40;
+      return 50 + Math.max(3, offset);
+    }
+    function bpBestCandidate(iso){
+      var bestIdx = -1, bestRank = null, bestDayKey = null;
+      for(var i=0; i<bpRow.length; i++){
+        var r = bpRow[i];
+        var b = bouwByOrder[r.sourceId];
+        if(b.startDate !== null) continue; // al gestart (klaar of nog bezig) — niet opnieuw claimen
+        var rank = bpRank(r, iso);
+        if(rank === null) continue;
+        if(bestRank === null || rank < bestRank || (rank === bestRank && r.dayKey < bestDayKey)){
+          bestRank = rank; bestDayKey = r.dayKey; bestIdx = i;
+        }
+      }
+      return bestIdx;
+    }
+
+    var bouwDayLog = [];
+    var today = mzTodayIso();
+    var prevIso = null;
+
+    for(var dayOffset = 0; dayOffset < MZ_LOOKAHEAD_DAYS; dayOffset++){
+      var iso = mzAddDaysIso(today, dayOffset);
+      var weekday = mzFromIso(iso).getUTCDay();
+      var capMinutes = mzCapMinutes(iso);
+      var usedMinutes = 0;
+      var dayTasks = [];
+
+      // Stap 0: laden vrijhouden/inplannen — 1 regel per dealer die gisteren met eigen vervoer "gereed" is
+      // geworden (spoed-orders met eigen vervoer worden los geladen, niet gebundeld).
+      if(prevIso){
+        var dealersGisteren = [];
+        var spoedGisterenEV = [];
+        orders.forEach(function(o){
+          if(o.eigenbezorging && o.klant && o.controleOnIso === prevIso){
+            if(o.spoed) spoedGisterenEV.push(o); else if(dealersGisteren.indexOf(o.klant) === -1) dealersGisteren.push(o.klant);
+          }
+        });
+        dealersGisteren.sort().forEach(function(dealer){
+          var minutes = mzState.loadMinutes;
+          if(usedMinutes + minutes > capMinutes) return;
+          usedMinutes += minutes;
+          dayTasks.push({ label: dealer, type: 'Laden', minutes: minutes, warn: false });
+        });
+        spoedGisterenEV.forEach(function(o){
+          var minutes = mzState.loadMinutes;
+          if(usedMinutes + minutes > capMinutes) return;
+          usedMinutes += minutes;
+          dayTasks.push({ label: o.label + ' (spoed, los)', type: 'Laden', minutes: minutes, warn: false });
         });
       }
-    });
 
-    mzScheduleTasks(flatTasks);
-    // voor de weergave: binnen dezelfde dag Controle- en Laadtaken bovenaan tonen, zodat de lijst de echte
-    // prioriteit toont
-    flatTasks.sort(function(a,b){
-      if(a.assignedDay !== b.assignedDay) return a.assignedDay < b.assignedDay ? -1 : 1;
-      return mzTaskTier(a.type) - mzTaskTier(b.type);
-    });
-
-    var days = {};
-    function ensureDay(dk){ if(!days[dk]) days[dk] = { tasks: [], totalMinutes: 0 }; return days[dk]; }
-    flatTasks.forEach(function(t){
-      var noteBits = [];
-      if(t.verschovenCapaciteit) noteBits.push('verschoven vanaf ' + mzShortDate(mzFromIso(t.naturalDay)) + ' wegens capaciteit');
-      if(t.warn) noteBits.push('haalt de planborddag (' + mzShortDate(mzFromIso(t.deadlineDay)) + ') niet meer');
-      ensureDay(t.assignedDay).tasks.push({
-        label: t.label + (noteBits.length ? ' (' + noteBits.join('; ') + ')' : ''),
-        type: t.type, minutes: t.minutes, warn: !!t.warn
+      // Stap 1: Magazijnplanning plant picken + controle/inpak in, geprioriteerd.
+      var candidates = [];
+      orders.forEach(function(o){
+        if(o.needsPick && !o.pickedOnIso && o.pickReadyIso <= iso) candidates.push({ order:o, kind:'pick' });
+        if(!o.klaar && !o.controleOnIso){
+          if(o.needsBuild){ if(o.buildFinishIso && o.buildFinishIso <= iso) candidates.push({ order:o, kind:'controle' }); }
+          else if(o.pickedOnIso && o.pickedOnIso <= iso) candidates.push({ order:o, kind:'controle' });
+        }
       });
-      days[t.assignedDay].totalMinutes += t.minutes;
+      candidates.forEach(function(cand){
+        var o = cand.order, isPick = cand.kind === 'pick';
+        var offset = werkdagenTussen(iso, o.dayKey, mzIsWerkdag);
+        var rank;
+        if(o.dayKey <= iso) rank = isPick ? 10 : 11;
+        else if(offset === 1) rank = isPick ? 30 : 31;
+        else if(o.spoed && offset <= 7) rank = isPick ? 40 : 41;
+        else { var off = Math.max(2, offset); rank = 50 + 2*(off-2) + (isPick ? 1 : 0); }
+        cand.rank = rank;
+      });
+      candidates.sort(function(a,b){
+        if(a.rank !== b.rank) return a.rank - b.rank;
+        return a.order.dayKey < b.order.dayKey ? -1 : (a.order.dayKey > b.order.dayKey ? 1 : 0);
+      });
+      candidates.forEach(function(cand){
+        var o = cand.order;
+        var minutes = cand.kind === 'pick' ? mzState.pickMinutes : o.finalStepMinutes;
+        if(usedMinutes + minutes > capMinutes) return; // past niet meer vandaag, blijft staan voor een volgende dag
+        usedMinutes += minutes;
+        var warn = o.dayKey < iso;
+        if(cand.kind === 'pick'){
+          o.pickedOnIso = iso;
+          o.picken = { task: { assignedDay: iso, warn: warn } };
+          dayTasks.push({ label:o.label, type:'Picken', minutes:minutes, warn:warn });
+        } else {
+          o.controleOnIso = iso;
+          o.controle = { task: { assignedDay: iso, warn: warn } };
+          dayTasks.push({ label:o.label, type:o.finalStepType, minutes:minutes, warn:warn });
+        }
+      });
+
+      // Stap 2: Bouwplanning bouwt verder, met wat Magazijnplanning tot en met vandaag heeft gepickt.
+      var freeList = [];
+      var dayEntries = [];
+      var actieveMedewerkers = 0, totaleCapaciteitVandaag = 0;
+      for(var wi=0; wi<workers.length; wi++){
+        var worker = workers[wi];
+        var capVandaag = bpCapVandaag(worker, iso, weekday);
+        if(capVandaag <= 0.0000001) continue;
+        actieveMedewerkers++; totaleCapaciteitVandaag += capVandaag;
+        if(worker.orderIdx !== null){
+          var b = bouwByOrder[bpRow[worker.orderIdx].sourceId];
+          if(worker.remaining <= capVandaag){
+            b.remaining -= worker.remaining; b.finishDate = iso; b.dailyLog.push({date:iso, amount:worker.remaining});
+            dayEntries.push({orderIdx:worker.orderIdx, amount:worker.remaining, finished:true});
+            var capLeft = capVandaag - worker.remaining;
+            worker.orderIdx = null; worker.remaining = 0;
+            freeList.push({workerIndex:wi, freePos:capVandaag-capLeft, capLeft:capLeft});
+          } else {
+            b.remaining -= capVandaag; b.dailyLog.push({date:iso, amount:capVandaag});
+            dayEntries.push({orderIdx:worker.orderIdx, amount:capVandaag, finished:false});
+            worker.remaining -= capVandaag;
+          }
+        } else {
+          freeList.push({workerIndex:wi, freePos:0, capLeft:capVandaag});
+        }
+      }
+      freeList.sort(function(a,b){ if(a.freePos!==b.freePos) return a.freePos-b.freePos; return a.workerIndex-b.workerIndex; });
+      freeList.forEach(function(free){
+        var capLeft = free.capLeft;
+        while(capLeft > 0.0000001){
+          var idx = bpBestCandidate(iso);
+          if(idx === -1) break;
+          var r = bpRow[idx];
+          var b = bouwByOrder[r.sourceId];
+          if(b.startDate === null) b.startDate = iso;
+          var use = Math.min(capLeft, b.remaining);
+          b.remaining -= use; capLeft -= use;
+          b.dailyLog.push({date:iso, amount:use});
+          if(b.remaining <= 0.0000001){
+            b.finishDate = iso;
+            dayEntries.push({orderIdx:idx, amount:use, finished:true});
+            var mzO = byOrder[r.sourceId]; if(mzO) mzO.buildFinishIso = iso;
+          } else {
+            dayEntries.push({orderIdx:idx, amount:use, finished:false});
+            workers[free.workerIndex].orderIdx = idx;
+            workers[free.workerIndex].remaining = b.remaining;
+            capLeft = 0;
+          }
+        }
+      });
+      if(actieveMedewerkers > 0 || dayEntries.length > 0){
+        bouwDayLog.push({date:iso, weekday:weekday, people:actieveMedewerkers, capacity:totaleCapaciteitVandaag, entries:dayEntries});
+      }
+
+      // Stap 3: spoed-orders die zojuist (stap 2) klaar zijn met bouwen, mogen dezelfde dag nog gecontroleerd worden.
+      orders.forEach(function(o){
+        if(o.needsBuild && o.spoed && o.buildFinishIso === iso && !o.controleOnIso){
+          var minutes = o.finalStepMinutes;
+          if(usedMinutes + minutes > capMinutes) return;
+          usedMinutes += minutes;
+          o.controleOnIso = iso;
+          o.controle = { task: { assignedDay: iso, warn: o.dayKey < iso } };
+          dayTasks.push({ label:o.label, type:o.finalStepType, minutes:minutes, warn:o.dayKey < iso });
+        }
+      });
+
+      if(dayTasks.length){ ensureDay(iso).tasks = dayTasks; days[iso].totalMinutes = usedMinutes; }
+      prevIso = iso;
+    }
+
+    // ---- Orders die aan het einde van het venster nog steeds op iets wachten, netjes tonen ----
+    orders.forEach(function(o){
+      if(o.klaar) return;
+      var b = bouwByOrder[o.sourceId];
+      o.bouw = b ? { start: b.startDate, finish: b.finishDate } : null;
+      if(!o.picken) o.picken = { pending: true };
+      if(!o.controle){
+        if(o.needsBuild) o.controle = { pending: true, note: (b && b.startDate) ? ('bouw gestart ' + b.startDate) : 'wacht op bouw' };
+        else o.controle = { pending: true, note: 'wacht op picken' };
+      }
     });
     Object.keys(byOrder).forEach(function(sid){
       var o = byOrder[sid];
@@ -3345,9 +3444,20 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       }
     });
 
-    var result = { days: days, dealerGroups: dealerGroups, byOrder: byOrder };
-    lastMzResult = result; // bridge voor het Planbord, zodat een bordje kan tonen of het zijn deadline nog haalt
-    return result;
+    lastMzResult = { days: days, dealerGroups: dealerGroups, byOrder: byOrder };
+
+    var bouwOrdersOut = bpRow.map(function(r){
+      var b = bouwByOrder[r.sourceId];
+      return { name:r.name, amount:b.amount, remaining:b.remaining, status:r.status, sourceId:r.sourceId,
+        startDate:b.startDate, finishDate:b.finishDate, dailyLog:b.dailyLog, spoed:!!r.spoed };
+    });
+    lastCombinedBouwResult = { orders: bouwOrdersOut, dayLog: bouwDayLog, warnings: bouwWarnings, startDate: mzLocalYesterday() };
+
+    return lastMzResult;
+  }
+
+  function mzCollect(){
+    return mzRunGecombineerdeSimulatie();
   }
 
   function mzRenderOverview(){
@@ -3380,57 +3490,57 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       head.appendChild(dateLabel); head.appendChild(totalLabel);
       box.appendChild(head);
 
-      info.tasks.forEach(function(t){
-        var row = document.createElement('div');
-        row.style.cssText = 'display:flex; justify-content:space-between; font-size:12.5px; padding:2px 0;' +
-          (t.pending ? ' color:var(--muted); font-style:italic;' : '') +
-          (t.warn ? ' color:var(--red); font-weight:700;' : '');
-        var left = document.createElement('span'); left.textContent = t.type + ' \u2014 ' + t.label;
-        var right = document.createElement('span');
-        right.style.fontFamily = 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace';
-        right.textContent = t.pending ? '\u2014' : (t.minutes + ' min');
-        row.appendChild(left); row.appendChild(right);
-        box.appendChild(row);
+      // Drie aparte kolommen (picken / controleren / laden) in plaats van \u00e9\u00e9n grote lijst \u2014 zo zie je in \u00e9\u00e9n
+      // oogopslag wat er die dag per soort werk te doen is. "Wacht op bouw"-meldingen horen bij geen van drie
+      // (ze zijn geen uit te voeren taak) en komen daarom los daaronder te staan.
+      var kolommen = [
+        { titel: 'PICKEN', match: function(t){ return t.type === 'Picken'; } },
+        { titel: 'CONTROLEREN', match: function(t){ return t.type === 'Controle na bouw' || t.type === 'Controle + inpak'; } },
+        { titel: 'LADEN', match: function(t){ return t.type === 'Laden'; } }
+      ];
+      var grid = document.createElement('div');
+      grid.style.cssText = 'display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px;';
+      kolommen.forEach(function(kol){
+        var taken = info.tasks.filter(function(t){ return kol.match(t) && !t.pending; });
+        var kolBox = document.createElement('div');
+        var kolHead = document.createElement('div');
+        kolHead.style.cssText = 'font-weight:700; font-size:10.5px; letter-spacing:.03em; color:var(--muted); margin-bottom:4px;';
+        kolHead.textContent = kol.titel + (taken.length ? ' (' + taken.length + ')' : '');
+        kolBox.appendChild(kolHead);
+        if(!taken.length){
+          var leeg = document.createElement('div');
+          leeg.style.cssText = 'font-size:12px; color:var(--muted); font-style:italic;';
+          leeg.textContent = '\u2014';
+          kolBox.appendChild(leeg);
+        } else {
+          taken.forEach(function(t){
+            var row = document.createElement('div');
+            row.style.cssText = 'font-size:12.5px; padding:2px 0;' + (t.warn ? ' color:var(--red); font-weight:700;' : '');
+            var label = document.createElement('div'); label.textContent = t.label;
+            var minutes = document.createElement('div');
+            minutes.style.cssText = 'font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px; color:' + (t.warn ? 'var(--red)' : 'var(--muted)') + ';';
+            minutes.textContent = t.minutes + ' min';
+            row.appendChild(label); row.appendChild(minutes);
+            kolBox.appendChild(row);
+          });
+        }
+        grid.appendChild(kolBox);
       });
-      el.appendChild(box);
-    });
-  }
+      box.appendChild(grid);
 
-  function mzRenderDealers(){
-    var data = mzCollect();
-    var el = document.getElementById('mz_dealers');
-    el.innerHTML = '';
-    var groups = Object.keys(data.dealerGroups).map(function(k){ return data.dealerGroups[k]; })
-      .filter(function(g){ return g.orders.length || g.spoedOrders.length; });
-    if(!groups.length){
-      el.innerHTML = '<p class="mz-hint">Geen orders met eigen bezorging gevonden.</p>';
-      return;
-    }
-    groups.sort(function(a,b){ return a.week === b.week ? a.dealer.localeCompare(b.dealer) : a.week.localeCompare(b.week); });
-    groups.forEach(function(g){
-      var box = document.createElement('div');
-      box.style.cssText = 'margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);';
-      var head = document.createElement('div');
-      head.style.cssText = 'font-weight:800; font-size:12.5px; color:var(--brand-dark); margin-bottom:3px;';
-      var suggestedDay = null;
-      if(g.orders.length){
-        var lastKey = g.orders.map(function(o){ return o.dayKey; }).sort().slice(-1)[0];
-        suggestedDay = mzShortDate(mzFromIso(lastKey));
+      var wachtTaken = info.tasks.filter(function(t){ return t.pending; });
+      if(wachtTaken.length){
+        var wachtWrap = document.createElement('div');
+        wachtWrap.style.cssText = 'margin-top:8px;';
+        wachtTaken.forEach(function(t){
+          var row = document.createElement('div');
+          row.style.cssText = 'font-size:12px; color:var(--muted); font-style:italic; padding:1px 0;';
+          row.textContent = t.label;
+          wachtWrap.appendChild(row);
+        });
+        box.appendChild(wachtWrap);
       }
-      head.textContent = g.dealer + (suggestedDay ? ' \u2014 voorstel: ' + suggestedDay : '');
-      box.appendChild(head);
-      g.orders.forEach(function(o){
-        var row = document.createElement('div');
-        row.style.cssText = 'font-size:12px; color:var(--muted);';
-        row.textContent = o.ordernr + ' \u2014 ' + mzShortDate(mzFromIso(o.dayKey));
-        box.appendChild(row);
-      });
-      g.spoedOrders.forEach(function(o){
-        var row = document.createElement('div');
-        row.style.cssText = 'font-size:12px; color:var(--red); font-weight:700;';
-        row.textContent = '\u2191 ' + o.ordernr + ' \u2014 spoed, los uitleveren zodra gereed';
-        box.appendChild(row);
-      });
+
       el.appendChild(box);
     });
   }
@@ -3506,6 +3616,9 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       if(o.picken.done){
         tdPicken.classList.add('done');
         tdPicken.textContent = 'Al gepickt (status)';
+      } else if(o.picken.pending){
+        tdPicken.classList.add('pending');
+        tdPicken.textContent = 'nog niet ingepland';
       } else {
         var pt = o.picken.task;
         tdPicken.textContent = mzShortDate(mzFromIso(pt.assignedDay));
@@ -3574,11 +3687,10 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     mzWireInput('mz_load', 'loadMinutes');
     mzRenderWeekgrid();
     mzRenderOverview();
-    mzRenderDealers();
     mzRenderOrders();
     mzRefreshPlanbordCards();
     setInterval(mzPoll, 4000);
-    setInterval(function(){ mzRenderOverview(); mzRenderDealers(); mzRenderOrders(); mzRefreshPlanbordCards(); }, 4000);
+    setInterval(function(){ mzRenderOverview(); mzRenderOrders(); mzRefreshPlanbordCards(); }, 4000);
   }
 
   if (window.planbordSignedInPromise){
