@@ -92,6 +92,21 @@
     gap:8px;
     flex-wrap:wrap;
   }
+  .view-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .view-controls.stacked{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+  .view-nav{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
   button.btn{
     font-family:inherit;
     font-size:12.5px;
@@ -382,6 +397,12 @@
     font-family:"Consolas","SFMono-Regular",Menlo,monospace;
   }
   .line-text .rest{ color:#3a4150; font-weight:600; }
+  /* Dag-weergave: bordjes over meerdere regels i.p.v. één afgekapte regel — zie renderCard(..., wide). */
+  .card.card-wide{ padding:6px 8px; }
+  .card-wide .card-line{ margin-bottom:3px; }
+  .card-wide .card-line:last-child{ margin-bottom:0; }
+  .line-text.wide-text{ overflow:visible; text-overflow:clip; white-space:normal; word-break:break-word; }
+  .card-line.wide-wrap{ white-space:normal; flex-wrap:wrap; row-gap:3px; }
   .tag{
     font-size:9.5px;
     font-weight:800;
@@ -901,13 +922,19 @@
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
     <button class="btn small" id="legendBtn">Legenda</button>
     <button class="btn small" id="logBtn">Log</button>
-    <div class="week-count-toggle" title="Wijzigt alleen jouw eigen weergave">
-      <button class="wct-btn" data-count="2">2 weken</button>
-      <button class="wct-btn" data-count="4">4 weken</button>
+    <div class="view-controls">
+      <div class="week-count-toggle" title="Wijzigt alleen jouw eigen weergave">
+        <button class="wct-btn" data-count="day">1 dag</button>
+        <button class="wct-btn" data-count="1">1 week</button>
+        <button class="wct-btn" data-count="2">2 weken</button>
+        <button class="wct-btn" data-count="4">4 weken</button>
+      </div>
+      <div class="view-nav">
+        <button class="btn" id="prevWeekBtn" title="Wijzigt alleen jouw eigen weergave">◀ Vorige</button>
+        <button class="btn primary small" id="todayBtn" title="Wijzigt alleen jouw eigen weergave">Huidige week</button>
+        <button class="btn" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Volgende ▶</button>
+      </div>
     </div>
-    <button class="btn" id="prevWeekBtn" title="Wijzigt alleen jouw eigen weergave">◀ Vorige</button>
-    <button class="btn primary small" id="todayBtn" title="Wijzigt alleen jouw eigen weergave">Huidige week</button>
-    <button class="btn" id="advanceBtn" title="Wijzigt alleen jouw eigen weergave">Volgende ▶</button>
   </div>
 </div>
 
@@ -915,10 +942,11 @@
   <div class="legend-group">
     <span class="legend-title">Orderstatus:</span>
     <span class="legend-item"><span class="dot" style="background:#ffffff;border:1px solid rgba(28,36,48,.35);"></span>wit — nieuw</span>
-    <span class="legend-item"><span class="dot" style="background:var(--status-blue)"></span>besteld</span>
+    <span class="legend-item"><span class="dot" style="background:var(--status-blue)"></span>goedgekeurd</span>
     <span class="legend-item"><span class="dot" style="background:var(--red)"></span>op voorraad</span>
     <span class="legend-item"><span class="dot" style="background:var(--yellow)"></span>magazijn gestart</span>
-    <span class="legend-item"><span class="dot" style="background:var(--status-green)"></span>gereed</span>
+    <span class="legend-item"><span class="dot" style="background:var(--status-green)"></span>klaar voor leveren</span>
+    <span class="legend-item"><span class="dot" style="background:var(--brand-dark)"></span>uitgeleverd</span>
   </div>
   <div class="legend-group">
     <span class="legend-title">Bezorging:</span>
@@ -984,10 +1012,11 @@
         <label>Status</label>
         <select id="f_status">
           <option value="">Wit — nieuw</option>
-          <option value="blue">Besteld (blauw)</option>
+          <option value="blue">Goedgekeurd (blauw)</option>
           <option value="red">Aanwezig (rood)</option>
           <option value="yellow">In verwerking (geel)</option>
-          <option value="green">Uitgeleverd (groen)</option>
+          <option value="green">Klaar voor leveren (groen)</option>
+          <option value="black">Uitgeleverd (zwart)</option>
         </select>
       </div>
       <div class="row2">
@@ -1020,6 +1049,7 @@
             <option value="red">Aanwezig (rood)</option>
             <option value="yellow">Gepickt (geel)</option>
             <option value="green">Gebouwd, klaar voor controle (groen)</option>
+            <option value="black">Uitgeleverd (zwart)</option>
           </select>
         </div>
       </div>
@@ -1137,7 +1167,7 @@
             <thead><tr><th></th><th>Order</th><th>Kasten</th></tr></thead>
             <tbody id="ordersBody"></tbody>
           </table>
-          <p class="hint" id="ordersEmptyHint" style="display:none;">Nog geen orders met status besteld, op voorraad of magazijn gestart gevonden in het planbord.</p>
+          <p class="hint" id="ordersEmptyHint" style="display:none;">Nog geen orders met status goedgekeurd, op voorraad of magazijn gestart gevonden in het planbord.</p>
         </div>
       </section>
     </div>
@@ -1363,7 +1393,7 @@ function defaultState(){
 }
 function defaultView(){
   const today = isoWeekData(new Date());
-  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek, weekCount: 4 };
+  return { anchorYear: today.isoYear, anchorWeek: today.isoWeek, weekCount: 4, dayMode: false, anchorDate: fmtDateKey(new Date()) };
 }
 
 let username = null;
@@ -1385,7 +1415,7 @@ async function loadView(){
     const item = await graphGetItemByKey(viewKeyForCurrentUser());
     if(item){
       viewItemId = item.id;
-      view = JSON.parse(item.fields.Data || "{}");
+      view = Object.assign(defaultView(), JSON.parse(item.fields.Data || "{}"));
       if(!view.anchorYear) view = defaultView();
     } else {
       view = defaultView();
@@ -1497,17 +1527,30 @@ function getWeekColumns(){
 function render(){
   const board = document.getElementById("board");
   board.innerHTML = "";
+  document.querySelectorAll(".wct-btn").forEach(btn => {
+    const active = view.dayMode ? btn.dataset.count === "day" : parseInt(btn.dataset.count, 10) === (view.weekCount || 4);
+    btn.classList.toggle("active", active);
+  });
+  document.getElementById("todayBtn").textContent = view.dayMode ? "Vandaag" : "Huidige week";
+  document.querySelector(".view-controls").classList.toggle("stacked", view.dayMode || (view.weekCount || 4) === 1);
+  if(view.dayMode){
+    board.style.gridTemplateColumns = `minmax(240px, 1fr)`;
+    board.style.minWidth = "250px";
+    const d = new Date((view.anchorDate || fmtDateKey(new Date())) + "T00:00:00Z");
+    board.appendChild(renderDayCol(d));
+    return;
+  }
   const n = view.weekCount || 4;
   board.style.gridTemplateColumns = `repeat(${n}, minmax(240px, 1fr))`;
   board.style.minWidth = (n * 250) + "px";
-  document.querySelectorAll(".wct-btn").forEach(btn => {
-    btn.classList.toggle("active", parseInt(btn.dataset.count, 10) === n);
-  });
   const cols = getWeekColumns();
-  cols.forEach(col => board.appendChild(renderWeekCol(col)));
+  // Bij "1 week" is er net als bij "1 dag" ruim voldoende breedte voor de volledige (niet-afgekapte) bordjes —
+  // een soort mobiele weergave. Bij 2/4 weken blijven de bordjes compact, anders past het niet naast elkaar.
+  const wide = n === 1;
+  cols.forEach(col => board.appendChild(renderWeekCol(col, wide)));
 }
 
-function renderWeekCol(col){
+function renderWeekCol(col, wide){
   const wk = weekKey(col.isoYear, col.isoWeek);
   const wrap = document.createElement("div");
   wrap.className = "week-col";
@@ -1620,43 +1663,108 @@ function renderWeekCol(col){
         <div class="day-col" data-col="2"></div>
       </div>
     `;
-    const dayCards = state.cards[dayKey] || [];
-    const colEls = row.querySelectorAll(".day-col");
-    colEls.forEach((colEl, colIdx) => {
-      const cardsInCol = dayCards.filter(c => (c.col || 0) === colIdx);
-      cardsInCol.forEach(card => colEl.appendChild(renderCard(card, dayKey)));
-      if(colIdx === 0){
-        const addBtn = document.createElement("button");
-        addBtn.className = "add-card-btn";
-        addBtn.textContent = "+ bordje";
-        addBtn.addEventListener("click", () => openModal(dayKey, null));
-        colEl.appendChild(addBtn);
-      } else if(cardsInCol.length === 0){
-        colEl.classList.add("day-col-empty");
-      }
-      if(cardsInCol.length > 0 && cardsInCol.every(c => c.type !== "order")){
-        colEl.classList.add("day-col-compact");
-      }
-      colEl.addEventListener("dragover", e => { e.preventDefault(); colEl.classList.add("dragover"); });
-      colEl.addEventListener("dragleave", () => colEl.classList.remove("dragover"));
-      colEl.addEventListener("drop", e => {
-        e.preventDefault();
-        colEl.classList.remove("dragover");
-        if(!dragCardId || !dragFromDay) return;
-        const fromArr = state.cards[dragFromDay] || [];
-        const idx = fromArr.findIndex(c => c.id === dragCardId);
-        if(idx === -1) return;
-        const [moved] = fromArr.splice(idx,1);
-        moved.col = colIdx;
-        if(!state.cards[dayKey]) state.cards[dayKey] = [];
-        state.cards[dayKey].push(moved);
-        dragCardId = null; dragFromDay = null;
-        persist(); render();
-      });
-    });
+    populateDayCell(row.querySelector(".day-cell"), dayKey, wide);
 
     wrap.appendChild(row);
   }
+
+  return wrap;
+}
+
+// Vult een leeg .day-cell-element (met zijn 3 .day-col drop-zones) met de bordjes van die dag, het "+ bordje"-
+// knopje en het slepen ertussen — gebruikt door zowel de week-weergave als de dag-weergave, zodat er maar één
+// plek is die dit hoeft te regelen.
+function populateDayCell(dayCell, dayKey, wide){
+  const dayCards = state.cards[dayKey] || [];
+  const colEls = dayCell.querySelectorAll(".day-col");
+  colEls.forEach((colEl, colIdx) => {
+    const cardsInCol = dayCards.filter(c => (c.col || 0) === colIdx);
+    cardsInCol.forEach(card => colEl.appendChild(renderCard(card, dayKey, wide)));
+    if(colIdx === 0){
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-card-btn";
+      addBtn.textContent = "+ bordje";
+      addBtn.addEventListener("click", () => openModal(dayKey, null));
+      colEl.appendChild(addBtn);
+    } else if(cardsInCol.length === 0){
+      colEl.classList.add("day-col-empty");
+    }
+    if(cardsInCol.length > 0 && cardsInCol.every(c => c.type !== "order")){
+      colEl.classList.add("day-col-compact");
+    }
+    colEl.addEventListener("dragover", e => { e.preventDefault(); colEl.classList.add("dragover"); });
+    colEl.addEventListener("dragleave", () => colEl.classList.remove("dragover"));
+    colEl.addEventListener("drop", e => {
+      e.preventDefault();
+      colEl.classList.remove("dragover");
+      if(!dragCardId || !dragFromDay) return;
+      const fromArr = state.cards[dragFromDay] || [];
+      const idx = fromArr.findIndex(c => c.id === dragCardId);
+      if(idx === -1) return;
+      const [moved] = fromArr.splice(idx,1);
+      moved.col = colIdx;
+      if(!state.cards[dayKey]) state.cards[dayKey] = [];
+      state.cards[dayKey].push(moved);
+      dragCardId = null; dragFromDay = null;
+      persist(); render();
+    });
+  });
+}
+
+// Dag-weergave: net als een week-kolom, maar dan met precies 1 dag erin (geen mededelingen — die zijn wekelijks
+// en horen bij de week-weergave) — hergebruikt dezelfde bordjes-/sleeplogica via populateDayCell.
+function renderDayCol(dateObj){
+  const dayKey = fmtDateKey(dateObj);
+  const wrap = document.createElement("div");
+  wrap.className = "week-col";
+
+  const head = document.createElement("div");
+  head.className = "week-head";
+  head.style.gridColumn = "1";
+  head.style.gridRow = "1";
+  let kastenTotal = 0, kastenRemaining = 0;
+  (state.cards[dayKey] || []).forEach(c => {
+    if(c.type === "order" && c.kastenAantal){
+      const n = parseInt(c.kastenAantal, 10);
+      if(!isNaN(n)){
+        kastenTotal += n;
+        if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green") kastenRemaining += n;
+      }
+    }
+  });
+  const abbrFull = ["zo","ma","di","wo","do","vr","za"][dateObj.getUTCDay()];
+  head.innerHTML = `
+    <div class="week-head-top">
+      <div>
+        <div class="week-num">${abbrFull.charAt(0).toUpperCase()+abbrFull.slice(1)} ${fmtDMY(dateObj)}</div>
+        <div class="week-accent"></div>
+        <div class="week-range">${fmtDMY(dateObj)}</div>
+        ${kastenTotal > 0 ? `<div class="week-kasten-total">K: ${kastenRemaining} / ${kastenTotal}</div>` : ""}
+      </div>
+    </div>
+  `;
+  wrap.appendChild(head);
+
+  const now = new Date();
+  const todayKey = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+  const isToday = dayKey === todayKey;
+  const row = document.createElement("div");
+  row.className = "day-row";
+  row.style.gridColumn = "1";
+  row.style.gridRow = "2";
+  row.innerHTML = `
+    <div class="day-label${isToday ? ' is-today' : ''}">
+      <div class="num">${dateObj.getUTCDate()}</div>
+      <div class="abbr">${abbrFull}</div>
+    </div>
+    <div class="day-cell" data-daykey="${dayKey}">
+      <div class="day-col" data-col="0"></div>
+      <div class="day-col" data-col="1"></div>
+      <div class="day-col" data-col="2"></div>
+    </div>
+  `;
+  populateDayCell(row.querySelector(".day-cell"), dayKey, true);
+  wrap.appendChild(row);
 
   return wrap;
 }
@@ -1670,7 +1778,7 @@ function fmtDayLabel(dayKey){
   return abbr + " " + fmtDMY(d);
 }
 
-const STATUS_COLOR = { blue:"var(--status-blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--status-green)" };
+const STATUS_COLOR = { blue:"var(--status-blue)", red:"var(--red)", yellow:"var(--yellow)", green:"var(--status-green)", black:"var(--brand-dark)" };
 
 // Werkt alleen de randkleur van bestaande bordjes bij (deadline wel/niet gehaald volgens Magazijnplanning),
 // zonder het hele bord opnieuw op te bouwen — dat laatste (render()) zou een mededeling die je aan het typen
@@ -1689,7 +1797,7 @@ function refreshCardDeadlineBorders(){
   });
 }
 
-function renderCard(card, dayKey){
+function renderCard(card, dayKey, wide){
   const el = document.createElement("div");
   el.className = "card";
   el.dataset.cardId = card.id; // zodat de rand periodiek ververst kan worden zonder het hele bord te herbouwen
@@ -1769,91 +1877,197 @@ function renderCard(card, dayKey){
     );
     el.style.borderLeftColor = deadlineMissed ? "var(--brand-yellow)" : "var(--brand-dark)";
     el.title = [card.ordernr, card.klant].filter(Boolean).join(" · ");
-    const line = document.createElement("div");
-    line.className = "card-line";
 
-    const dot = document.createElement("span");
-    dot.className = "dot";
-    dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);margin-right:5px;`;
-    line.appendChild(dot);
+    if(wide){
+      // Dag-weergave: alle info blijft leesbaar over 4 losse regels i.p.v. op één regel af te kappen.
+      el.classList.add("card-wide");
 
-    const text = document.createElement("span");
-    text.className = "line-text";
-    const ordSpan = document.createElement("span");
-    ordSpan.className = "ordnr";
-    ordSpan.style.cssText = "display:inline-block; min-width:6ch; text-align:right;";
-    ordSpan.textContent = card.ordernr || "(geen nr.)";
-    text.appendChild(ordSpan);
-    if(card.klant){
-      const restSpan = document.createElement("span");
-      restSpan.className = "rest";
-      restSpan.style.cssText = "display:inline-block; min-width:4ch; margin-left:6px;";
-      restSpan.textContent = card.klant;
-      text.appendChild(restSpan);
-    }
-    line.appendChild(text);
-
-    if(card.kastenAantal){
-      const t = document.createElement("span");
-      t.className = "tag shelf";
-      const numSpan = document.createElement("span");
-      numSpan.style.cssText = "display:inline-block; min-width:2ch;";
-      numSpan.textContent = card.kastenAantal;
-      t.appendChild(numSpan);
-      if(card.kastenStatus){
-        const kd = document.createElement("span");
-        kd.className = "tag-dot";
-        kd.style.cssText = "margin-left:3px; margin-right:0;";
-        kd.style.background = STATUS_COLOR[card.kastenStatus] || "#ffffff";
-        kd.style.border = "1px solid rgba(28,36,48,.25)";
-        t.appendChild(kd);
+      const line1 = document.createElement("div");
+      line1.className = "card-line";
+      const dot1 = document.createElement("span");
+      dot1.className = "dot";
+      dot1.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);margin-right:5px;flex-shrink:0;`;
+      line1.appendChild(dot1);
+      const text1 = document.createElement("span");
+      text1.className = "line-text wide-text";
+      const ordSpan = document.createElement("span");
+      ordSpan.className = "ordnr";
+      ordSpan.textContent = card.ordernr || "(geen nr.)";
+      text1.appendChild(ordSpan);
+      if(card.klant){
+        const restSpan = document.createElement("span");
+        restSpan.className = "rest";
+        restSpan.style.marginLeft = "8px";
+        restSpan.textContent = card.klant;
+        text1.appendChild(restSpan);
       }
-      text.appendChild(t);
-    }
-    (card.extras || []).forEach(ex => {
-      const t = document.createElement("span");
-      t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
-      t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
-      if(ex.status){
-        const ed = document.createElement("span");
-        ed.className = "tag-dot";
-        ed.style.cssText = "margin-left:3px; margin-right:0;";
-        ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
-        ed.style.border = "1px solid rgba(28,36,48,.25)";
-        t.appendChild(ed);
+      line1.appendChild(text1);
+      line1.appendChild(del);
+      el.appendChild(line1);
+
+      if(card.kastenAantal){
+        const line2 = document.createElement("div");
+        line2.className = "card-line";
+        const t = document.createElement("span");
+        t.className = "tag shelf";
+        t.style.marginLeft = "0";
+        t.appendChild(document.createTextNode(card.kastenAantal + "x kasten"));
+        if(card.kastenStatus){
+          const kd = document.createElement("span");
+          kd.className = "tag-dot";
+          kd.style.cssText = "margin-left:5px; margin-right:0;";
+          kd.style.background = STATUS_COLOR[card.kastenStatus] || "#ffffff";
+          kd.style.border = "1px solid rgba(28,36,48,.25)";
+          t.appendChild(kd);
+        }
+        line2.appendChild(t);
+        el.appendChild(line2);
       }
-      text.appendChild(t);
-    });
-    if(card.eigenbezorging){
-      const chip = document.createElement("span");
-      chip.className = "deliv-chip";
-      chip.title = "Eigen bezorging" + (card.chauffeur ? " — chauffeur: " + card.chauffeur : " — nog geen chauffeur") +
-        " (" + (card.bezorgstatus==='green' ? "bevestigd" : card.bezorgstatus==='yellow' ? "gevraagd, geen reactie" : "gepland, nog niet gebeld") + ")";
-      const bar = document.createElement("span");
-      bar.className = "deliv-bar";
-      chip.appendChild(bar);
-      const cdot = document.createElement("span");
-      cdot.className = "deliv-dot";
-      cdot.style.background = card.bezorgstatus==='green' ? 'var(--status-green)' : card.bezorgstatus==='yellow' ? 'var(--yellow)' : card.bezorgstatus==='red' ? 'var(--red)' : '#ffffff';
-      chip.appendChild(cdot);
-      text.appendChild(chip);
+
+      if((card.extras || []).length){
+        const line3 = document.createElement("div");
+        line3.className = "card-line wide-wrap";
+        card.extras.forEach(ex => {
+          const t = document.createElement("span");
+          t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
+          t.style.marginLeft = "0";
+          t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
+          if(ex.status){
+            const ed = document.createElement("span");
+            ed.className = "tag-dot";
+            ed.style.cssText = "margin-left:3px; margin-right:6px;";
+            ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
+            ed.style.border = "1px solid rgba(28,36,48,.25)";
+            t.appendChild(ed);
+          }
+          line3.appendChild(t);
+        });
+        el.appendChild(line3);
+      }
+
+      if(card.spoed || card.eigenbezorging || card.opmerkingen){
+        const line4 = document.createElement("div");
+        line4.className = "card-line wide-wrap";
+        if(card.spoed){
+          const arrow = document.createElement("span");
+          arrow.className = "arrow-urgent";
+          arrow.style.marginLeft = "0";
+          arrow.textContent = "↑";
+          arrow.title = "Spoed";
+          line4.appendChild(arrow);
+        }
+        if(card.eigenbezorging){
+          const chip = document.createElement("span");
+          chip.className = "deliv-chip";
+          chip.style.marginLeft = card.spoed ? "8px" : "0";
+          chip.title = "Eigen bezorging" + (card.chauffeur ? " — chauffeur: " + card.chauffeur : " — nog geen chauffeur") +
+            " (" + (card.bezorgstatus==='green' ? "bevestigd" : card.bezorgstatus==='yellow' ? "gevraagd, geen reactie" : "gepland, nog niet gebeld") + ")";
+          const bar = document.createElement("span");
+          bar.className = "deliv-bar";
+          chip.appendChild(bar);
+          const cdot = document.createElement("span");
+          cdot.className = "deliv-dot";
+          cdot.style.background = card.bezorgstatus==='green' ? 'var(--status-green)' : card.bezorgstatus==='yellow' ? 'var(--yellow)' : card.bezorgstatus==='red' ? 'var(--red)' : '#ffffff';
+          chip.appendChild(cdot);
+          line4.appendChild(chip);
+        }
+        if(card.opmerkingen){
+          const remMark = document.createElement("span");
+          remMark.className = "opmerking-marker";
+          remMark.style.marginLeft = (card.spoed || card.eigenbezorging) ? "8px" : "0";
+          remMark.textContent = "*";
+          remMark.title = "Opmerking (open het bordje om te lezen)";
+          line4.appendChild(remMark);
+        }
+        el.appendChild(line4);
+      }
+    } else {
+      const line = document.createElement("div");
+      line.className = "card-line";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.cssText = `background:${STATUS_COLOR[card.status]||'#ffffff'};width:8px;height:8px;border-radius:50%;display:inline-block;border:1px solid rgba(28,36,48,.25);margin-right:5px;`;
+      line.appendChild(dot);
+
+      const text = document.createElement("span");
+      text.className = "line-text";
+      const ordSpan = document.createElement("span");
+      ordSpan.className = "ordnr";
+      ordSpan.style.cssText = "display:inline-block; min-width:6ch; text-align:right;";
+      ordSpan.textContent = card.ordernr || "(geen nr.)";
+      text.appendChild(ordSpan);
+      if(card.klant){
+        const restSpan = document.createElement("span");
+        restSpan.className = "rest";
+        restSpan.style.cssText = "display:inline-block; min-width:4ch; margin-left:6px;";
+        restSpan.textContent = card.klant;
+        text.appendChild(restSpan);
+      }
+      line.appendChild(text);
+
+      if(card.kastenAantal){
+        const t = document.createElement("span");
+        t.className = "tag shelf";
+        const numSpan = document.createElement("span");
+        numSpan.style.cssText = "display:inline-block; min-width:2ch;";
+        numSpan.textContent = card.kastenAantal;
+        t.appendChild(numSpan);
+        if(card.kastenStatus){
+          const kd = document.createElement("span");
+          kd.className = "tag-dot";
+          kd.style.cssText = "margin-left:3px; margin-right:0;";
+          kd.style.background = STATUS_COLOR[card.kastenStatus] || "#ffffff";
+          kd.style.border = "1px solid rgba(28,36,48,.25)";
+          t.appendChild(kd);
+        }
+        text.appendChild(t);
+      }
+      (card.extras || []).forEach(ex => {
+        const t = document.createElement("span");
+        t.className = "tag " + (ex.type === "fp" ? "fp" : "fd");
+        t.appendChild(document.createTextNode((ex.type || "fd").toUpperCase() + (ex.code ? " " + ex.code : "")));
+        if(ex.status){
+          const ed = document.createElement("span");
+          ed.className = "tag-dot";
+          ed.style.cssText = "margin-left:3px; margin-right:0;";
+          ed.style.background = STATUS_COLOR[ex.status] || "#ffffff";
+          ed.style.border = "1px solid rgba(28,36,48,.25)";
+          t.appendChild(ed);
+        }
+        text.appendChild(t);
+      });
+      if(card.eigenbezorging){
+        const chip = document.createElement("span");
+        chip.className = "deliv-chip";
+        chip.title = "Eigen bezorging" + (card.chauffeur ? " — chauffeur: " + card.chauffeur : " — nog geen chauffeur") +
+          " (" + (card.bezorgstatus==='green' ? "bevestigd" : card.bezorgstatus==='yellow' ? "gevraagd, geen reactie" : "gepland, nog niet gebeld") + ")";
+        const bar = document.createElement("span");
+        bar.className = "deliv-bar";
+        chip.appendChild(bar);
+        const cdot = document.createElement("span");
+        cdot.className = "deliv-dot";
+        cdot.style.background = card.bezorgstatus==='green' ? 'var(--status-green)' : card.bezorgstatus==='yellow' ? 'var(--yellow)' : card.bezorgstatus==='red' ? 'var(--red)' : '#ffffff';
+        chip.appendChild(cdot);
+        text.appendChild(chip);
+      }
+      if(card.spoed){
+        const arrow = document.createElement("span");
+        arrow.className = "arrow-urgent";
+        arrow.textContent = "↑";
+        arrow.title = "Spoed";
+        text.appendChild(arrow);
+      }
+      if(card.opmerkingen){
+        const remMark = document.createElement("span");
+        remMark.className = "opmerking-marker";
+        remMark.textContent = "*";
+        remMark.title = "Opmerking (open het bordje om te lezen)";
+        text.appendChild(remMark);
+      }
+      line.appendChild(del);
+      el.appendChild(line);
     }
-    if(card.spoed){
-      const arrow = document.createElement("span");
-      arrow.className = "arrow-urgent";
-      arrow.textContent = "↑";
-      arrow.title = "Spoed";
-      text.appendChild(arrow);
-    }
-    if(card.opmerkingen){
-      const remMark = document.createElement("span");
-      remMark.className = "opmerking-marker";
-      remMark.textContent = "*";
-      remMark.title = "Opmerking (open het bordje om te lezen)";
-      text.appendChild(remMark);
-    }
-    line.appendChild(del);
-    el.appendChild(line);
   } else if(card.type === "supplier"){
     el.classList.add("card-compact");
     el.style.borderLeftColor = "var(--blue)";
@@ -1920,6 +2134,43 @@ function setType(t){
 document.getElementById("f_eigenbezorging").addEventListener("change", (e) => {
   deliverySubfields.style.display = e.target.checked ? "" : "none";
 });
+
+// De kasten-status mag alleen afwijken van de order-status bij een gele order (dan gaat het om de tussenstappen
+// "gepickt, klaar voor bouw" en "wordt gebouwd" — en de kasten kunnen ook al helemaal klaar zijn terwijl de
+// order zelf nog niet als afgerond is gezet). Bij elke andere order-status volgt de kasten-status automatisch
+// mee en staat het veld op slot, zodat er geen ongeldige combinatie (bijv. rode order met blauwe kasten) meer
+// gekozen kan worden.
+var KASTEN_STATUS_LOCKED_LABEL = { '':'Geen status', blue:'Onderweg (blauw)', red:'Aanwezig (rood)', green:'Gebouwd, klaar voor controle (groen)', black:'Uitgeleverd (zwart)' };
+var KASTEN_STATUS_YELLOW_OPTIES = [
+  { value:'red', label:'Gepickt, klaar voor bouw (rood)' },
+  { value:'yellow', label:'Wordt gebouwd (geel)' },
+  { value:'green', label:'Gebouwd, klaar voor controle (groen)' }
+];
+function updateKastenStatusVeld(){
+  var statusSel = document.getElementById("f_status");
+  var kastenSel = document.getElementById("f_kasten_status");
+  var huidige = kastenSel.value;
+  kastenSel.innerHTML = "";
+  if(statusSel.value === "yellow"){
+    KASTEN_STATUS_YELLOW_OPTIES.forEach(function(opt){
+      var el = document.createElement("option");
+      el.value = opt.value; el.textContent = opt.label;
+      kastenSel.appendChild(el);
+    });
+    var geldig = KASTEN_STATUS_YELLOW_OPTIES.some(function(o){ return o.value === huidige; });
+    kastenSel.value = geldig ? huidige : "red";
+    kastenSel.disabled = false;
+  } else {
+    var el2 = document.createElement("option");
+    el2.value = statusSel.value;
+    el2.textContent = KASTEN_STATUS_LOCKED_LABEL[statusSel.value] || "Geen status";
+    kastenSel.appendChild(el2);
+    kastenSel.value = statusSel.value;
+    kastenSel.disabled = true;
+  }
+}
+document.getElementById("f_status").addEventListener("change", updateKastenStatusVeld);
+
 let currentExtras = [];
 function renderExtrasList(){
   const wrap = document.getElementById("extrasList");
@@ -1982,6 +2233,7 @@ function openModal(dayKey, card){
   document.getElementById("f_gewenste_leverdatum").value = "";
   document.getElementById("f_kasten_aantal").value = "";
   document.getElementById("f_kasten_status").value = "";
+  updateKastenStatusVeld();
   currentExtras = [];
   renderExtrasList();
   document.getElementById("f_spoed").checked = false;
@@ -2008,6 +2260,7 @@ function openModal(dayKey, card){
       document.getElementById("f_gewenste_leverdatum").value = card.gewensteLeverdatum || "";
       document.getElementById("f_kasten_aantal").value = card.kastenAantal || "";
       document.getElementById("f_kasten_status").value = card.kastenStatus || "";
+      updateKastenStatusVeld();
       currentExtras = (card.extras || []).map(ex => ({...ex}));
       renderExtrasList();
       document.getElementById("f_spoed").checked = !!card.spoed;
@@ -2167,27 +2420,46 @@ document.getElementById("logCloseBtn").addEventListener("click", () => {
   document.getElementById("logOverlay").classList.remove("open");
 });
 document.getElementById("advanceBtn").addEventListener("click", () => {
-  const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
-  mon.setUTCDate(mon.getUTCDate()+7);
-  const wd = isoWeekData(mon);
-  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  if(view.dayMode){
+    const d = new Date((view.anchorDate || fmtDateKey(new Date())) + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate()+1);
+    view.anchorDate = fmtDateKey(d);
+  } else {
+    const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
+    mon.setUTCDate(mon.getUTCDate()+7);
+    const wd = isoWeekData(mon);
+    view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  }
   persistView(); render();
 });
 document.getElementById("prevWeekBtn").addEventListener("click", () => {
-  const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
-  mon.setUTCDate(mon.getUTCDate()-7);
-  const wd = isoWeekData(mon);
-  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  if(view.dayMode){
+    const d = new Date((view.anchorDate || fmtDateKey(new Date())) + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate()-1);
+    view.anchorDate = fmtDateKey(d);
+  } else {
+    const mon = mondayOfISOWeek(view.anchorYear, view.anchorWeek);
+    mon.setUTCDate(mon.getUTCDate()-7);
+    const wd = isoWeekData(mon);
+    view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  }
   persistView(); render();
 });
 document.getElementById("todayBtn").addEventListener("click", () => {
   const today = isoWeekData(new Date());
   view.anchorYear = today.isoYear; view.anchorWeek = today.isoWeek;
+  view.anchorDate = fmtDateKey(new Date());
   persistView(); render();
 });
 document.querySelectorAll(".wct-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    view.weekCount = parseInt(btn.dataset.count, 10);
+    if(btn.dataset.count === "day"){
+      view.dayMode = true;
+      if(!view.anchorDate) view.anchorDate = fmtDateKey(new Date());
+    } else {
+      view.dayMode = false;
+      view.weekCount = parseInt(btn.dataset.count, 10);
+    }
     persistView(); render();
   });
 });
@@ -2769,7 +3041,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     Object.keys(pb.cards).forEach(function(dayKey){
       (pb.cards[dayKey] || []).forEach(function(c, dayIdx){
         // een order met kasten staat altijd in de bouwplanning, totdat de kasten (of het hele bordje) gereed/uitgeleverd zijn
-        var kastenGereed = c.kastenStatus === 'green' || c.status === 'green';
+        var kastenGereed = c.kastenStatus === 'green' || c.kastenStatus === 'black' || c.status === 'green' || c.status === 'black';
         if (c.type === 'order' && !kastenGereed && c.kastenAantal){
           var amt = parseInt(c.kastenAantal, 10);
           if (!isNaN(amt) && amt > 0){
@@ -3093,8 +3365,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
   // Handmatig al op "gepickt" (of verder) gezet — via de kasten-status óf de algemene bordje-status, welke van
   // de twee dan ook.
   function mzAlGepickt(c){
-    return c.kastenStatus === 'yellow' || c.kastenStatus === 'green' ||
-      c.status === 'yellow' || c.status === 'green';
+    return c.kastenStatus === 'yellow' || c.kastenStatus === 'green' || c.kastenStatus === 'black' ||
+      c.status === 'yellow' || c.status === 'green' || c.status === 'black';
   }
 
   function mzCapMinutes(dayKey){
@@ -3156,8 +3428,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     return (mzUrenVoorMedewerkerOpDag(medewerker, exceptions, iso, weekday)/8) * productivity;
   }
 
-  var MZ_STATUS_LABEL = { '':'Wit — nieuw', blue:'Besteld', red:'Aanwezig', yellow:'In verwerking', green:'Uitgeleverd' };
-  var MZ_STATUS_COLOR = { '':'#ffffff', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)', green:'var(--status-green)' };
+  var MZ_STATUS_LABEL = { '':'Wit — nieuw', blue:'Goedgekeurd', red:'Aanwezig', yellow:'In verwerking', green:'Klaar voor leveren', black:'Uitgeleverd' };
+  var MZ_STATUS_COLOR = { '':'#ffffff', blue:'var(--status-blue)', red:'var(--red)', yellow:'var(--yellow)', green:'var(--status-green)', black:'var(--brand-dark)' };
 
   var MZ_LOOKAHEAD_DAYS = 14; // maximaal 2 weken vooruitkijken voor orders waar verder niets aan de hand is
 
@@ -3208,8 +3480,9 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         if(c.type !== 'order') return;
         var kastenAantal = parseInt(c.kastenAantal, 10); if(isNaN(kastenAantal)) kastenAantal = 0;
         var label = (c.ordernr || '(geen nr.)') + (c.klant ? ' · ' + c.klant : '');
-        var klaar = c.status === 'green';
+        var klaar = c.status === 'green' || c.status === 'black';
         var alGepickt = mzAlGepickt(c);
+        var kastenAlKlaar = c.kastenStatus === 'green' || c.kastenStatus === 'black';
         var o = {
           sourceId: c.id, ordernr: c.ordernr || '(geen nr.)', klant: c.klant || '', dayKey: dayKey,
           status: c.status || '', kastenStatus: c.kastenStatus || '', kastenAantal: kastenAantal, aanwezigDatum: c.aanwezigDatum || '',
@@ -3218,8 +3491,8 @@ document.querySelectorAll(".page-tab").forEach(btn => {
           needsPick: !klaar && !alGepickt,
           pickReadyIso: !klaar ? mzPickReadyIso(c, dayKey, kastenAantal) : null,
           pickedOnIso: (klaar || alGepickt) ? '0000-00-00' : null,
-          needsBuild: !klaar && kastenAantal > 0 && c.kastenStatus !== 'green',
-          buildFinishIso: (!klaar && kastenAantal > 0 && c.kastenStatus === 'green') ? mzTodayIso() : null,
+          needsBuild: !klaar && kastenAantal > 0 && !kastenAlKlaar,
+          buildFinishIso: (!klaar && kastenAantal > 0 && kastenAlKlaar) ? mzTodayIso() : null,
           finalStepType: kastenAantal > 0 ? 'Controle na bouw' : 'Controle + inpak',
           finalStepMinutes: kastenAantal > 0 ? mzState.checkBuildMinutes : mzState.packMinutes,
           controleOnIso: null, bezorgVoorstel: null,
@@ -3604,7 +3877,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     var empty = document.getElementById('mz_order_empty');
     body.innerHTML = '';
     // groene orders zijn helemaal klaar (alle stappen doorlopen) — die hoeven hier niet meer te staan
-    var orders = Object.keys(data.byOrder).map(function(k){ return data.byOrder[k]; }).filter(function(o){ return o.status !== 'green'; });
+    var orders = Object.keys(data.byOrder).map(function(k){ return data.byOrder[k]; }).filter(function(o){ return o.status !== 'green' && o.status !== 'black'; });
     orders.sort(function(a,b){
       var ra = mzOrderSortRank(a), rb = mzOrderSortRank(b);
       if(ra !== rb) return ra - rb;
@@ -3656,7 +3929,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       var tdBouw = document.createElement('td');
       tdBouw.className = 'mz-step';
       if(o.kastenAantal > 0){
-        if(o.kastenStatus === 'green'){
+        if(o.kastenStatus === 'green' || o.kastenStatus === 'black'){
           tdBouw.textContent = 'Al gebouwd';
           tdBouw.classList.add('done');
         } else if(o.bouw && o.bouw.finish){
