@@ -3713,12 +3713,14 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     // Bouwplanning heeft geen eigen vaste volgorde meer — hij bouwt, uit alles wat Magazijnplanning al heeft
     // vrijgegeven (gepickt), elke dag opnieuw het meest urgente. Kasten-status geel (al in de werkplaats) gaat
     // altijd voor. Daarna, in volgorde: spoed dat binnen 2 werkdagen weg moet, dan wat vandaag weg moet, dan
-    // morgen, dan overmorgen, dan spoed dat deze week weg moet, en dan de rest op planborddag (werkdagen, tot
-    // 2 weken vooruit) — dit ligt dichter bij spoed dan Magazijnplanning's eigen prioriteit, omdat een gemiste
-    // bouwdeadline een grotere impact heeft. Er is geen "nooit doorspringen" meer nodig: zonder vaste volgorde
-    // kan er ook geen gat ontstaan — elke dag wordt gewoon het beste beschikbare werk gekozen.
+    // morgen, dan overmorgen, dan spoed dat deze week weg moet, en dan de rest op planborddag (werkdagen) —
+    // dit ligt dichter bij spoed dan Magazijnplanning's eigen prioriteit, omdat een gemiste bouwdeadline een
+    // grotere impact heeft. Er wordt nooit begonnen aan een order waarvan de leverdatum meer dan
+    // MZ_LOOKAHEAD_DAYS (2 weken) in de toekomst ligt: dan blijft die dag liever onbenut dan dat er te vroeg
+    // aan gestart wordt — schuif het bordje zelf naar voren als het eerder mag.
     function bpRank(r, iso){
       if(r.status === 'yellow') return -1000; // al in de werkplaats, halverwege — altijd eerst afmaken
+      if(mzDaysBetween(today, r.dayKey) > MZ_LOOKAHEAD_DAYS) return null; // te ver in de toekomst — nog niet starten
       var pickedOn = byOrder[r.sourceId] ? byOrder[r.sourceId].pickedOnIso : null;
       if(!pickedOn) return null; // nog niet gepickt door Magazijnplanning — nog niet beschikbaar
       var eligibleFloor = r.spoed ? pickedOn : mzAddDaysIso(pickedOn, 1);
@@ -3781,10 +3783,12 @@ document.querySelectorAll(".page-tab").forEach(btn => {
         });
       }
 
-      // Stap 1: Magazijnplanning plant picken + controle/inpak in, geprioriteerd.
+      // Stap 1: Magazijnplanning plant picken + controle/inpak in, geprioriteerd. Picken start nooit meer dan
+      // MZ_LOOKAHEAD_DAYS (2 weken) vóór de leverdatum — controle/inpak van al gebouwd of aanwezig werk mag
+      // altijd door, dat is geen vroeg begonnen werk maar het afronden van iets dat al klaar ligt.
       var candidates = [];
       orders.forEach(function(o){
-        if(o.needsPick && !o.pickedOnIso && o.pickReadyIso <= iso) candidates.push({ order:o, kind:'pick' });
+        if(o.needsPick && !o.pickedOnIso && o.pickReadyIso <= iso && mzDaysBetween(today, o.dayKey) <= MZ_LOOKAHEAD_DAYS) candidates.push({ order:o, kind:'pick' });
         if(!o.klaar && !o.controleOnIso){
           if(o.needsBuild){ if(o.buildFinishIso && o.buildFinishIso <= iso) candidates.push({ order:o, kind:'controle' }); }
           else if(o.pickedOnIso && o.pickedOnIso <= iso) candidates.push({ order:o, kind:'controle' });
