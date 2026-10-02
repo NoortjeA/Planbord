@@ -140,18 +140,6 @@
     align-items:center;
     gap:5px;
   }
-  .order-jump-input{
-    font-family:inherit;
-    font-size:11.5px;
-    color:var(--ink);
-    background:var(--paper);
-    border:1.5px solid var(--brand-dark);
-    border-radius:4px;
-    padding:6px 9px;
-    width:150px;
-  }
-  .order-jump-input:focus{ outline:2px solid var(--brand-yellow); outline-offset:1px; }
-  .order-jump-input.not-found{ border-color:var(--red); }
   .week-count-toggle{
     display:flex;
     border:1.5px solid var(--brand-dark);
@@ -389,11 +377,6 @@
   .card.card-compact{ padding:2px 5px; font-size:10.5px; }
   .card.drop-before{ box-shadow: 0 -3px 0 0 var(--status-blue); }
   .card.drop-after{ box-shadow: 0 3px 0 0 var(--status-blue); }
-  .card.card-flash{ animation: cardFlash 1.8s ease-out; }
-  @keyframes cardFlash{
-    0%, 35%{ box-shadow:0 0 0 3px var(--brand-yellow); }
-    100%{ box-shadow:0 1px 1px rgba(0,0,0,.05); }
-  }
   .card-line{
     display:flex;
     align-items:center;
@@ -731,34 +714,12 @@
 .mz-page .mz-hint{ font-size:11.5px; color:var(--ink-faint,var(--muted)); margin-top:6px; }
 .mz-page table.mz-order-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
 .mz-page table.mz-order-table th{ text-align:left; font-weight:800; text-transform:uppercase; font-size:10.5px; letter-spacing:.2px; color:var(--muted); padding:6px 10px; border-bottom:2px solid var(--brand-dark); white-space:nowrap; }
-.mz-page table.mz-order-table th[data-sort]{ cursor:pointer; user-select:none; }
-.mz-page table.mz-order-table th[data-sort]:hover{ color:var(--brand-dark); }
-.mz-page table.mz-order-table th.sort-asc::after{ content:" \25B2"; }
-.mz-page table.mz-order-table th.sort-desc::after{ content:" \25BC"; }
 .mz-page table.mz-order-table td{ padding:6px 10px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
 .mz-page table.mz-order-table tr:hover td{ background:#f7f8fa; }
 .mz-page .mz-step{ white-space:nowrap; }
 .mz-page .mz-step.warn{ color:var(--red); font-weight:700; }
 .mz-page .mz-step.pending{ color:var(--ink-faint,var(--muted)); font-style:italic; }
 .mz-page .mz-step.done{ color:var(--status-green); }
-.mz-order-toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-bottom:12px; }
-.mz-order-search{ font-family:inherit; font-size:12.5px; color:var(--ink); padding:7px 10px; border:1px solid var(--line-soft); border-radius:3px; width:220px; }
-.mz-order-filter{ font-family:inherit; font-size:12.5px; color:var(--ink); padding:7px 8px; border:1px solid var(--line-soft); border-radius:3px; background:#fff; }
-.mz-order-count{ font-size:11.5px; color:var(--muted); margin-left:auto; }
-.mz-status-toggle{ display:flex; border:1.5px solid var(--brand-dark); border-radius:4px; overflow:hidden; }
-.mz-status-chip{
-  font-family:inherit; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.2px;
-  padding:6px 9px; border:none; background:#fff; color:var(--brand-dark); cursor:pointer;
-  display:flex; align-items:center; gap:5px;
-}
-.mz-status-chip:not(:last-child){ border-right:1.5px solid var(--brand-dark); }
-.mz-status-chip.active{ background:var(--brand-dark); color:#fff; }
-.mz-status-chip .dot{ width:7px; height:7px; border-radius:50%; border:1px solid rgba(28,36,48,.25); flex-shrink:0; }
-.mz-status-chip.active .dot{ border-color:rgba(255,255,255,.5); }
-/* Knoppen onder elkaar i.p.v. naast elkaar: de kolom heeft zo maar de breedte van één knop nodig, dus is er
-   veel minder kans dat hij buiten beeld valt — en de pagina blijft gewoon op de normale manier horizontaal
-   scrollbaar om de rest te zien, zoals voorheen. */
-.mz-order-actions{ display:flex; flex-direction:column; gap:4px; }
 
 /* ===== Bouwplanning (page 2) — scoped under #page-bouwplanning ===== */
 #page-bouwplanning{
@@ -959,7 +920,6 @@
   </div>
   <div class="topbar-controls">
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
-    <input type="text" class="order-jump-input" id="orderJumpInput" placeholder="Ga naar order…" title="Typ een ordernummer en druk op Enter">
     <button class="btn small" id="legendBtn">Legenda</button>
     <button class="btn small" id="logBtn">Log</button>
     <div class="view-controls">
@@ -1038,10 +998,6 @@
   </div>
 </div>
 
-</div><!-- /#page-planbord -->
-
-<!-- Bewerk-scherm voor een bordje: bewust buiten #page-planbord geplaatst, zodat Orderplanning 'm ook kan
-     openen zonder eerst naar het Planbord te hoeven navigeren. -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modalTitle">Nieuw bordje</h2>
@@ -1049,11 +1005,6 @@
       <button data-type="order" class="active">Order</button>
       <button data-type="supplier">Levering</button>
       <button data-type="note">Notitie</button>
-    </div>
-
-    <div class="field">
-      <label>Datum op het planbord</label>
-      <input type="date" id="f_planborddatum">
     </div>
 
     <div id="fieldsOrder">
@@ -1170,6 +1121,8 @@
   </div>
 </div>
 
+</div><!-- /#page-planbord -->
+
 <div id="page-bouwplanning" style="display:none;">
 
 <div class="wrap">
@@ -1261,28 +1214,10 @@
     <p>Eén overzicht per order: wanneer gebeurt wat, van binnenkomst tot bezorging. Automatisch afgeleid uit Planbord, Bouwplanning en Magazijnplanning.</p>
   </header>
   <section class="mz-panel">
-    <div class="mz-body" style="padding:14px 14px 0;">
-      <div class="mz-order-toolbar">
-        <input type="text" id="mz_order_search" class="mz-order-search" placeholder="Zoek op ordernummer of klant…">
-        <div class="mz-status-toggle" id="mz_status_toggle" title="Kies welke statussen je wilt zien (meerdere tegelijk mag)">
-          <button type="button" class="mz-status-chip active" data-status=""><span class="dot" style="background:#ffffff"></span>Wit</button>
-          <button type="button" class="mz-status-chip active" data-status="blue"><span class="dot" style="background:var(--status-blue)"></span>Blauw</button>
-          <button type="button" class="mz-status-chip active" data-status="red"><span class="dot" style="background:var(--red)"></span>Rood</button>
-          <button type="button" class="mz-status-chip active" data-status="yellow"><span class="dot" style="background:var(--yellow)"></span>Geel</button>
-          <button type="button" class="mz-status-chip" data-status="green"><span class="dot" style="background:var(--status-green)"></span>Groen</button>
-        </div>
-        <select id="mz_order_filter_bezorging" class="mz-order-filter">
-          <option value="__all__">Alle bezorging</option>
-          <option value="eigen">Eigen vervoer</option>
-          <option value="extern">Extern vervoerder</option>
-        </select>
-        <span class="mz-order-count" id="mz_order_count"></span>
-      </div>
-    </div>
     <div class="mz-body" style="padding:0; overflow-x:auto;">
       <table class="mz-order-table" id="mz_order_table">
         <thead><tr>
-          <th data-sort="order">Order</th><th data-sort="status">Status</th><th data-sort="aanwezig">Spullen binnen</th><th data-sort="picken">Picken</th><th data-sort="bouw">Bouw</th><th data-sort="controle">Controle / inpak</th><th data-sort="bezorging">Bezorging</th><th></th>
+          <th>Order</th><th>Status</th><th>Spullen binnen</th><th>Picken</th><th>Bouw</th><th>Controle / inpak</th><th>Bezorging</th>
         </tr></thead>
         <tbody id="mz_order_body"></tbody>
       </table>
@@ -2285,7 +2220,6 @@ document.querySelectorAll("#noteColorPick label").forEach(l => {
 function openModal(dayKey, card){
   editingDayKey = dayKey;
   editingCardId = card ? card.id : null;
-  document.getElementById("f_planborddatum").value = dayKey || "";
   document.getElementById("modalTitle").textContent = card ? "Bordje bewerken" : "Nieuw bordje";
   document.getElementById("deleteCardBtn").style.display = card ? "" : "none";
   document.getElementById("deleteCardBtn").textContent = "Verwijderen";
@@ -2362,7 +2296,6 @@ function closeModal(){
   overlay.classList.remove("open");
   editingDayKey = null;
   editingCardId = null;
-  window.dispatchEvent(new Event("planbord:modalclosed")); // zodat andere pagina's (bijv. Orderplanning) zichzelf kunnen verversen
 }
 document.getElementById("cancelBtn").addEventListener("click", closeModal);
 // Bewust geen sluiten-door-ernaast-te-klikken: dat gebeurde te vaak per ongeluk, met verlies van wijzigingen
@@ -2390,8 +2323,6 @@ document.getElementById("deleteCardBtn").addEventListener("click", function(){
 
 document.getElementById("saveCardBtn").addEventListener("click", () => {
   if(!editingDayKey) return;
-  const targetDayKey = document.getElementById("f_planborddatum").value;
-  if(!targetDayKey){ showFormError("Vul een datum in."); return; }
   let existingCol = 0;
   if(editingCardId && editingDayKey && state.cards[editingDayKey]){
     const existing = state.cards[editingDayKey].find(c => c.id === editingCardId);
@@ -2437,24 +2368,19 @@ document.getElementById("saveCardBtn").addEventListener("click", () => {
     if(!card.text){ showFormError("Vul een tekst in."); return; }
   }
 
-  // Datum gewijzigd via het datumveld? Dan verhuist het bordje naar die dag — eerst weghalen bij de oude dag,
-  // zodat je een order niet via het invullen van een nieuwe datum per ongeluk kunt verdubbelen.
-  if(editingCardId && targetDayKey !== editingDayKey && state.cards[editingDayKey]){
-    state.cards[editingDayKey] = state.cards[editingDayKey].filter(c => c.id !== editingCardId);
-  }
-  if(!state.cards[targetDayKey]) state.cards[targetDayKey] = [];
+  if(!state.cards[editingDayKey]) state.cards[editingDayKey] = [];
   if(editingCardId){
-    const idx = state.cards[targetDayKey].findIndex(c => c.id === editingCardId);
-    if(idx !== -1) state.cards[targetDayKey][idx] = card;
-    else state.cards[targetDayKey].push(card);
+    const idx = state.cards[editingDayKey].findIndex(c => c.id === editingCardId);
+    if(idx !== -1) state.cards[editingDayKey][idx] = card;
+    else state.cards[editingDayKey].push(card);
   } else {
-    state.cards[targetDayKey].push(card);
+    state.cards[editingDayKey].push(card);
   }
   let summary = "";
   if(card.type === "order") summary = (card.ordernr || "(geen nr.)") + (card.klant ? " · " + card.klant : "");
   else if(card.type === "supplier") summary = card.naam + (card.code ? ": " + card.code : "");
   else if(card.type === "note") summary = card.text;
-  logAction(editingCardId ? "gewijzigd" : "toegevoegd", summary + " (" + fmtDayLabel(targetDayKey) + ")");
+  logAction(editingCardId ? "gewijzigd" : "toegevoegd", summary + " (" + fmtDayLabel(editingDayKey) + ")");
   persist(); render(); closeModal();
 });
 
@@ -2494,48 +2420,6 @@ document.getElementById("logBtn").addEventListener("click", () => {
 document.getElementById("logCloseBtn").addEventListener("click", () => {
   document.getElementById("logOverlay").classList.remove("open");
 });
-// Navigeert naar de week die 'dayKey' bevat (schakelt zo nodig naar het Planbord-tabblad) en laat het bordje
-// even oplichten zodat je 'm meteen terugvindt — gebruikt door "ga naar bordje" (Orderplanning) en "ga naar
-// order" (zoekveld hierboven op het Planbord zelf).
-function goToCard(dayKey, cardId){
-  const tab = document.querySelector('.page-tab[data-page="planbord"]');
-  if(tab && !tab.classList.contains("active")) tab.click();
-  view.dayMode = false;
-  const wd = isoWeekData(new Date(dayKey + "T00:00:00Z"));
-  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
-  persistView(); render();
-  requestAnimationFrame(() => {
-    const el = document.querySelector('[data-card-id="' + cardId + '"]');
-    if(!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("card-flash");
-    setTimeout(() => el.classList.remove("card-flash"), 1800);
-  });
-}
-window.goToCard = goToCard;
-
-// Zoekt een order-bordje op ordernummer (exacte match, hoofdletterongevoelig) en springt er direct naartoe —
-// voorkomt het week-voor-week doorzoeken van het bord.
-document.getElementById("orderJumpInput").addEventListener("keydown", (e) => {
-  if(e.key !== "Enter") return;
-  const input = e.target;
-  const needle = input.value.trim().toLowerCase();
-  input.classList.remove("not-found");
-  if(!needle) return;
-  let found = null;
-  for(const dayKey in state.cards){
-    const hit = (state.cards[dayKey] || []).find(c => c.type === "order" && (c.ordernr || "").toLowerCase() === needle);
-    if(hit){ found = { dayKey, card: hit }; break; }
-  }
-  if(found){
-    goToCard(found.dayKey, found.card.id);
-    input.value = "";
-    input.blur();
-  } else {
-    input.classList.add("not-found");
-  }
-});
-
 document.getElementById("advanceBtn").addEventListener("click", () => {
   if(view.dayMode){
     const d = new Date((view.anchorDate || fmtDateKey(new Date())) + "T00:00:00Z");
@@ -3988,104 +3872,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     }
     if(o.status === 'red') return 4;
     if(o.status === 'blue') return 5;
-    if(o.status === '') return 6; // wit — nieuw
-    if(o.status === 'green') return 7; // klaar voor leveren — alleen zichtbaar als je er expliciet op filtert
-    return 8; // zwart — uitgeleverd, helemaal onderaan
-  }
-
-  // Zoeken/filteren/sorteren in Orderplanning — puur lokale weergavestaat, hoeft niet bewaard te blijven.
-  // "statuses" is een lijstje van aangevinkte statussen — standaard alles behalve groen (dat zet je er zelf bij).
-  var mzOrderUI = { search: '', statuses: ['', 'blue', 'red', 'yellow'], bezorging: '__all__', sortCol: null, sortDir: 1 };
-
-  // Geeft voor elke kolom een vergelijkbare waarde terug (ISO-datumstrings vergelijken correct als gewone
-  // tekst) — gebruikt wanneer je op een kolomkop klikt. Orders zonder een echte datum voor die stap (al klaar,
-  // nog niet ingepland, stap niet van toepassing) krijgen een sentinel zodat ze consistent voor- of achteraan
-  // de sortering belanden i.p.v. willekeurig ertussenin.
-  function mzOrderSortValue(o, col){
-    var STATUS_RANK = { '':0, blue:1, red:2, yellow:3 };
-    switch(col){
-      case 'order': return o.ordernr || '';
-      case 'status': return STATUS_RANK[o.status] != null ? STATUS_RANK[o.status] : 9;
-      case 'aanwezig': return o.aanwezigDatum || mzAddDaysIso(o.dayKey, -(o.kastenAantal > 0 ? 14 : 7));
-      case 'picken':
-        if(o.picken.done) return '0000-00-00';
-        if(o.picken.pending) return '9999-99-99';
-        return o.picken.task.assignedDay;
-      case 'bouw':
-        if(o.kastenAantal <= 0) return '0000-00-00';
-        if(o.kastenStatus === 'green' || o.kastenStatus === 'black') return '0000-00-01';
-        if(o.bouw && o.bouw.start) return o.bouw.start;
-        return '9999-99-99';
-      case 'controle':
-        if(o.controle.done) return '0000-00-00';
-        if(o.controle.pending) return '9999-99-99';
-        return o.controle.task.assignedDay;
-      case 'bezorging':
-        if(!o.eigenbezorging) return 'zzzz-extern';
-        if(o.spoed) return '0000-00-00';
-        return o.bezorgVoorstel || '9999-99-99';
-      default: return '';
-    }
-  }
-
-  // Zwart (uitgeleverd) hoort hier nooit te staan, ook niet via een filter — alle andere statussen kun je los
-  // aan- en uitvinken, bijvoorbeeld om groen er even "bij te zetten" zonder de rest te verliezen.
-  function mzOrderStatusVisible(o){
-    if(o.status === 'black') return false;
-    return mzOrderUI.statuses.indexOf(o.status) !== -1;
-  }
-
-  function mzOrderMatchesFilters(o){
-    if(!mzOrderStatusVisible(o)) return false;
-    if(mzOrderUI.bezorging === 'eigen' && !o.eigenbezorging) return false;
-    if(mzOrderUI.bezorging === 'extern' && o.eigenbezorging) return false;
-    if(mzOrderUI.search){
-      var haystack = ((o.ordernr || '') + ' ' + (o.klant || '')).toLowerCase();
-      if(haystack.indexOf(mzOrderUI.search) === -1) return false;
-    }
-    return true;
-  }
-
-  // Opent hetzelfde bewerk-scherm als op het Planbord, rechtstreeks vanuit Orderplanning — de modal staat
-  // bewust buiten #page-planbord zodat dit werkt zonder eerst van tabblad te hoeven wisselen.
-  function mzEditOrder(o){
-    var pb = (typeof window.getPlanbordState === 'function') ? window.getPlanbordState() : null;
-    if(!pb || !pb.cards) return;
-    var card = (pb.cards[o.dayKey] || []).find(function(c){ return c.id === o.sourceId; });
-    if(!card || typeof window.openModal !== 'function') return;
-    window.openModal(o.dayKey, card);
-  }
-
-  function mzWireOrderToolbar(){
-    var searchInput = document.getElementById('mz_order_search');
-    var bezorgingSelect = document.getElementById('mz_order_filter_bezorging');
-    if(searchInput) searchInput.addEventListener('input', function(){
-      mzOrderUI.search = searchInput.value.trim().toLowerCase();
-      mzRenderOrders();
-    });
-    document.querySelectorAll('#mz_status_toggle .mz-status-chip').forEach(function(chip){
-      chip.addEventListener('click', function(){
-        var st = chip.dataset.status;
-        var idx = mzOrderUI.statuses.indexOf(st);
-        if(idx === -1) mzOrderUI.statuses.push(st); else mzOrderUI.statuses.splice(idx, 1);
-        chip.classList.toggle('active', idx === -1);
-        mzRenderOrders();
-      });
-    });
-    if(bezorgingSelect) bezorgingSelect.addEventListener('change', function(){
-      mzOrderUI.bezorging = bezorgingSelect.value;
-      mzRenderOrders();
-    });
-    document.querySelectorAll('#mz_order_table th[data-sort]').forEach(function(th){
-      th.addEventListener('click', function(){
-        var col = th.dataset.sort;
-        if(mzOrderUI.sortCol === col) mzOrderUI.sortDir = -mzOrderUI.sortDir;
-        else { mzOrderUI.sortCol = col; mzOrderUI.sortDir = 1; }
-        mzRenderOrders();
-      });
-    });
-    // Een bewerking vanuit Orderplanning zelf (of vanaf het Planbord) ververst meteen deze tabel.
-    window.addEventListener('planbord:modalclosed', mzRenderOrders);
+    return 6; // wit — nieuw
   }
 
   function mzRenderOrders(){
@@ -4093,53 +3880,16 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     var body = document.getElementById('mz_order_body');
     var table = document.getElementById('mz_order_table');
     var empty = document.getElementById('mz_order_empty');
-    var countEl = document.getElementById('mz_order_count');
     body.innerHTML = '';
-    var basePool = Object.keys(data.byOrder).map(function(k){ return data.byOrder[k]; });
-    // "allOrders" = wat er zonder zoeken/bezorgfilter te zien zou zijn (voor de "X van Y"-telling) — houdt
-    // rekening met het standaard verbergen van afgeronde orders, tenzij je daar specifiek op filtert.
-    var allOrders = basePool.filter(mzOrderStatusVisible);
-    var orders = basePool.filter(mzOrderMatchesFilters);
-
-    document.querySelectorAll('#mz_order_table th[data-sort]').forEach(function(th){
-      th.classList.remove('sort-asc', 'sort-desc');
-      if(th.dataset.sort === mzOrderUI.sortCol) th.classList.add(mzOrderUI.sortDir > 0 ? 'sort-asc' : 'sort-desc');
+    // groene orders zijn helemaal klaar (alle stappen doorlopen) — die hoeven hier niet meer te staan
+    var orders = Object.keys(data.byOrder).map(function(k){ return data.byOrder[k]; }).filter(function(o){ return o.status !== 'green' && o.status !== 'black'; });
+    orders.sort(function(a,b){
+      var ra = mzOrderSortRank(a), rb = mzOrderSortRank(b);
+      if(ra !== rb) return ra - rb;
+      return a.dayKey === b.dayKey ? a.ordernr.localeCompare(b.ordernr) : (a.dayKey < b.dayKey ? -1 : 1);
     });
-
-    if(mzOrderUI.sortCol){
-      var col = mzOrderUI.sortCol, dir = mzOrderUI.sortDir;
-      orders.sort(function(a, b){
-        var va = mzOrderSortValue(a, col), vb = mzOrderSortValue(b, col);
-        var cmp = (typeof va === 'number' || typeof vb === 'number')
-          ? (Number(va) || 0) - (Number(vb) || 0)
-          : String(va).localeCompare(String(vb), undefined, { numeric: true });
-        if(cmp === 0) cmp = (a.ordernr || '').localeCompare(b.ordernr || '', undefined, { numeric: true });
-        return cmp * dir;
-      });
-    } else {
-      orders.sort(function(a,b){
-        var ra = mzOrderSortRank(a), rb = mzOrderSortRank(b);
-        if(ra !== rb) return ra - rb;
-        return a.dayKey === b.dayKey ? a.ordernr.localeCompare(b.ordernr) : (a.dayKey < b.dayKey ? -1 : 1);
-      });
-    }
-
-    table.style.display = basePool.length ? '' : 'none';
-    empty.style.display = basePool.length ? 'none' : '';
-    var orderWoord = function(n){ return n === 1 ? 'order' : 'orders'; };
-    if(countEl) countEl.textContent = (!basePool.length) ? '' :
-      (orders.length === allOrders.length ? (allOrders.length + ' ' + orderWoord(allOrders.length)) : (orders.length + ' van ' + allOrders.length + ' ' + orderWoord(allOrders.length)));
-
-    if(basePool.length && !orders.length){
-      var trNone = document.createElement('tr');
-      var tdNone = document.createElement('td');
-      tdNone.colSpan = 8;
-      tdNone.className = 'mz-hint';
-      tdNone.style.padding = '14px';
-      tdNone.textContent = 'Geen orders gevonden voor dit zoek-/filterresultaat.';
-      trNone.appendChild(tdNone);
-      body.appendChild(trNone);
-    }
+    table.style.display = orders.length ? '' : 'none';
+    empty.style.display = orders.length ? 'none' : '';
 
     orders.forEach(function(o){
       var tr = document.createElement('tr');
@@ -4202,10 +3952,7 @@ document.querySelectorAll(".page-tab").forEach(btn => {
 
       var tdControle = document.createElement('td');
       tdControle.className = 'mz-step';
-      if(o.controle.done){
-        tdControle.textContent = 'Al klaar (status)';
-        tdControle.classList.add('done');
-      } else if(o.controle.pending){
+      if(o.controle.pending){
         tdControle.textContent = o.controle.note;
         tdControle.classList.add('pending');
       } else {
@@ -4226,18 +3973,6 @@ document.querySelectorAll(".page-tab").forEach(btn => {
       }
       tr.appendChild(tdBezorg);
 
-      var tdActions = document.createElement('td');
-      tdActions.className = 'mz-order-actions';
-      var editBtn = document.createElement('button');
-      editBtn.type = 'button'; editBtn.className = 'btn small'; editBtn.textContent = 'Bewerken';
-      editBtn.addEventListener('click', function(){ mzEditOrder(o); });
-      var gotoBtn = document.createElement('button');
-      gotoBtn.type = 'button'; gotoBtn.className = 'btn small'; gotoBtn.textContent = 'Ga naar bordje';
-      gotoBtn.addEventListener('click', function(){ if(typeof window.goToCard === 'function') window.goToCard(o.dayKey, o.sourceId); });
-      tdActions.appendChild(editBtn);
-      tdActions.appendChild(gotoBtn);
-      tr.appendChild(tdActions);
-
       body.appendChild(tr);
     });
   }
@@ -4256,7 +3991,6 @@ document.querySelectorAll(".page-tab").forEach(btn => {
     mzWireInput('mz_checkbuild', 'checkBuildMinutes');
     mzWireInput('mz_load', 'loadMinutes');
     mzRenderWeekgrid();
-    mzWireOrderToolbar();
     mzRenderOverview();
     mzRenderOrders();
     mzRefreshPlanbordCards();
