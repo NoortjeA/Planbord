@@ -1571,7 +1571,7 @@ function renderWeekCol(col, wide){
         const n = parseInt(c.kastenAantal, 10);
         if(!isNaN(n)){
           kastenTotal += n;
-          if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green") kastenRemaining += n;
+          if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green" && c.kastenStatus !== "black") kastenRemaining += n;
         }
       }
     });
@@ -1728,7 +1728,7 @@ function renderDayCol(dateObj){
       const n = parseInt(c.kastenAantal, 10);
       if(!isNaN(n)){
         kastenTotal += n;
-        if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green") kastenRemaining += n;
+        if(c.kastenStatus !== "yellow" && c.kastenStatus !== "green" && c.kastenStatus !== "black") kastenRemaining += n;
       }
     }
   });
@@ -2298,7 +2298,8 @@ function closeModal(){
   editingCardId = null;
 }
 document.getElementById("cancelBtn").addEventListener("click", closeModal);
-overlay.addEventListener("click", (e) => { if(e.target === overlay) closeModal(); });
+// Bewust geen sluiten-door-ernaast-te-klikken: dat gebeurde te vaak per ongeluk, met verlies van wijzigingen
+// tot gevolg — sluiten kan alleen nog via de knoppen onderaan (Annuleren/Opslaan/Verwijderen).
 
 document.getElementById("deleteCardBtn").addEventListener("click", function(){
   const btn = this;
