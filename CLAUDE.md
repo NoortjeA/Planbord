@@ -17,6 +17,7 @@ De eigenaar van dit project (Noortje) is niet zelf een ontwikkelaar. Alles moet 
 - **Laat altijd zien wat er gaat veranderen** voordat het wordt toegepast, en leg in gewone taal uit wat de wijziging doet.
 - **Bij twijfel: vragen, niet aannemen.**
 - **Nooit committen of pushen naar GitHub zonder dat dat expliciet gevraagd is** — ook niet in Auto mode. Altijd expliciet vragen voordat `git commit` of `git push` wordt uitgevoerd.
+- **Een akkoord om te pushen is altijd beperkt tot wat er op dat moment concreet besproken is** — niet tot alles wat toevallig op dat moment nog los klaarstaat. Staan er meerdere, losse dingen klaar om te pushen (bijv. een los documentatie-bestand én niet-gerelateerde app-wijzigingen van eerder in het gesprek), vraag die dan apart na. Nooit een "ja" die over het ene ding ging, gebruiken als dekking om ook iets anders mee te pushen.
 - Geen overbodige disclaimers herhalen (zoals steeds "ik push nog niets" zeggen) — gewoon kort vragen "wil je dit al pushen of nog verder werken?" zodra iets echt klaar is.
 
 ## Twee bestanden, altijd samen
