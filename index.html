@@ -1007,6 +1007,11 @@
       <button data-type="note">Notitie</button>
     </div>
 
+    <div class="field">
+      <label>Datum op het planbord</label>
+      <input type="date" id="f_planborddatum">
+    </div>
+
     <div id="fieldsOrder">
       <div class="field">
         <label>Status</label>
@@ -2220,6 +2225,7 @@ document.querySelectorAll("#noteColorPick label").forEach(l => {
 function openModal(dayKey, card){
   editingDayKey = dayKey;
   editingCardId = card ? card.id : null;
+  document.getElementById("f_planborddatum").value = dayKey || "";
   document.getElementById("modalTitle").textContent = card ? "Bordje bewerken" : "Nieuw bordje";
   document.getElementById("deleteCardBtn").style.display = card ? "" : "none";
   document.getElementById("deleteCardBtn").textContent = "Verwijderen";
@@ -2323,6 +2329,8 @@ document.getElementById("deleteCardBtn").addEventListener("click", function(){
 
 document.getElementById("saveCardBtn").addEventListener("click", () => {
   if(!editingDayKey) return;
+  const targetDayKey = document.getElementById("f_planborddatum").value;
+  if(!targetDayKey){ showFormError("Vul een datum in."); return; }
   let existingCol = 0;
   if(editingCardId && editingDayKey && state.cards[editingDayKey]){
     const existing = state.cards[editingDayKey].find(c => c.id === editingCardId);
@@ -2368,19 +2376,24 @@ document.getElementById("saveCardBtn").addEventListener("click", () => {
     if(!card.text){ showFormError("Vul een tekst in."); return; }
   }
 
-  if(!state.cards[editingDayKey]) state.cards[editingDayKey] = [];
+  // Datum gewijzigd via het datumveld? Dan verhuist het bordje naar die dag — eerst weghalen bij de oude dag,
+  // zodat je een order niet via het invullen van een nieuwe datum per ongeluk kunt verdubbelen.
+  if(editingCardId && targetDayKey !== editingDayKey && state.cards[editingDayKey]){
+    state.cards[editingDayKey] = state.cards[editingDayKey].filter(c => c.id !== editingCardId);
+  }
+  if(!state.cards[targetDayKey]) state.cards[targetDayKey] = [];
   if(editingCardId){
-    const idx = state.cards[editingDayKey].findIndex(c => c.id === editingCardId);
-    if(idx !== -1) state.cards[editingDayKey][idx] = card;
-    else state.cards[editingDayKey].push(card);
+    const idx = state.cards[targetDayKey].findIndex(c => c.id === editingCardId);
+    if(idx !== -1) state.cards[targetDayKey][idx] = card;
+    else state.cards[targetDayKey].push(card);
   } else {
-    state.cards[editingDayKey].push(card);
+    state.cards[targetDayKey].push(card);
   }
   let summary = "";
   if(card.type === "order") summary = (card.ordernr || "(geen nr.)") + (card.klant ? " · " + card.klant : "");
   else if(card.type === "supplier") summary = card.naam + (card.code ? ": " + card.code : "");
   else if(card.type === "note") summary = card.text;
-  logAction(editingCardId ? "gewijzigd" : "toegevoegd", summary + " (" + fmtDayLabel(editingDayKey) + ")");
+  logAction(editingCardId ? "gewijzigd" : "toegevoegd", summary + " (" + fmtDayLabel(targetDayKey) + ")");
   persist(); render(); closeModal();
 });
 
