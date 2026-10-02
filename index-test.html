@@ -140,6 +140,18 @@
     align-items:center;
     gap:5px;
   }
+  .order-jump-input{
+    font-family:inherit;
+    font-size:11.5px;
+    color:var(--ink);
+    background:var(--paper);
+    border:1.5px solid var(--brand-dark);
+    border-radius:4px;
+    padding:6px 9px;
+    width:150px;
+  }
+  .order-jump-input:focus{ outline:2px solid var(--brand-yellow); outline-offset:1px; }
+  .order-jump-input.not-found{ border-color:var(--red); }
   .week-count-toggle{
     display:flex;
     border:1.5px solid var(--brand-dark);
@@ -377,6 +389,11 @@
   .card.card-compact{ padding:2px 5px; font-size:10.5px; }
   .card.drop-before{ box-shadow: 0 -3px 0 0 var(--status-blue); }
   .card.drop-after{ box-shadow: 0 3px 0 0 var(--status-blue); }
+  .card.card-flash{ animation: cardFlash 1.8s ease-out; }
+  @keyframes cardFlash{
+    0%, 35%{ box-shadow:0 0 0 3px var(--brand-yellow); }
+    100%{ box-shadow:0 1px 1px rgba(0,0,0,.05); }
+  }
   .card-line{
     display:flex;
     align-items:center;
@@ -925,6 +942,7 @@
   </div>
   <div class="topbar-controls">
     <span class="status-pill"><span class="status-dot" id="liveDot"></span><span id="liveTxt">verbinden…</span></span>
+    <input type="text" class="order-jump-input" id="orderJumpInput" placeholder="Ga naar order…" title="Typ een ordernummer en druk op Enter">
     <button class="btn small" id="legendBtn">Legenda</button>
     <button class="btn small" id="logBtn">Log</button>
     <div class="view-controls">
@@ -2615,6 +2633,47 @@ document.getElementById("logBtn").addEventListener("click", () => {
 document.getElementById("logCloseBtn").addEventListener("click", () => {
   document.getElementById("logOverlay").classList.remove("open");
 });
+// Navigeert naar de week die 'dayKey' bevat (schakelt zo nodig naar het Planbord-tabblad) en laat het bordje
+// even oplichten zodat je 'm meteen terugvindt — gebruikt door het "ga naar order"-zoekveld hierboven.
+function goToCard(dayKey, cardId){
+  const tab = document.querySelector('.page-tab[data-page="planbord"]');
+  if(tab && !tab.classList.contains("active")) tab.click();
+  view.dayMode = false;
+  const wd = isoWeekData(new Date(dayKey + "T00:00:00Z"));
+  view.anchorYear = wd.isoYear; view.anchorWeek = wd.isoWeek;
+  persistView(); render();
+  requestAnimationFrame(() => {
+    const el = document.querySelector('[data-card-id="' + cardId + '"]');
+    if(!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("card-flash");
+    setTimeout(() => el.classList.remove("card-flash"), 1800);
+  });
+}
+window.goToCard = goToCard;
+
+// Zoekt een order-bordje op ordernummer (exacte match, hoofdletterongevoelig) en springt er direct naartoe —
+// voorkomt het week-voor-week doorzoeken van het bord.
+document.getElementById("orderJumpInput").addEventListener("keydown", (e) => {
+  if(e.key !== "Enter") return;
+  const input = e.target;
+  const needle = input.value.trim().toLowerCase();
+  input.classList.remove("not-found");
+  if(!needle) return;
+  let found = null;
+  for(const dayKey in state.cards){
+    const hit = (state.cards[dayKey] || []).find(c => c.type === "order" && (c.ordernr || "").toLowerCase() === needle);
+    if(hit){ found = { dayKey, card: hit }; break; }
+  }
+  if(found){
+    goToCard(found.dayKey, found.card.id);
+    input.value = "";
+    input.blur();
+  } else {
+    input.classList.add("not-found");
+  }
+});
+
 document.getElementById("advanceBtn").addEventListener("click", () => {
   if(view.dayMode){
     const d = new Date((view.anchorDate || fmtDateKey(new Date())) + "T00:00:00Z");
